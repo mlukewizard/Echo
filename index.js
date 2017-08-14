@@ -46,6 +46,19 @@ exports.handler = (event, context) => {
         })
         break;
 
+        case "GetTechnicalInfo":
+        var OtasID = myFunctions.GetOtasID(event.request.intent.slots.StockString.value);
+        console.log(`INTENT REQUEST`)
+        myFunctions.TechnicalStockInfo(OtasID, function(stock){
+          context.succeed(
+            generateResponse(
+              buildSpeechletResponse(stock, true),
+              {}
+            )
+          )
+        })
+        break;
+
         default:
         throw "Invalid intent"
       }
