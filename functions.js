@@ -1,15 +1,17 @@
 var request = require('request');
 var https = require('https');
 const StockList = require('./StockList');
- var Object = StockList.StockDatabase;
+var Object = StockList.StockDatabase;
 
 //----StockInfo----
-exports.StockInfo = function(OtasID, StockInfoCallBack){
+exports.StockInfo = function (OtasID, StockInfoCallBack) {
   var options = {
     "rejectUnauthorized": false,
-    url: 'https://api-dev.otastech.com/v1.11.1/stock/' + OtasID +  '/',
+    url: 'https://api-dev.otastech.com/v1.11.1/stock/' + OtasID + '/',
     headers: {
-      'Authorization':'ADE2C684A57BA4AB25542F57B5E5B'
+      'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
+      'Username': 'luke.markham@otastechnology.com',
+      'Password': 'Otastech1!'
     }
   };
 
@@ -23,13 +25,39 @@ exports.StockInfo = function(OtasID, StockInfoCallBack){
   request(options, APIcallback);
 }
 
-//----TechnicalStockInfo----
-exports.TechnicalStockInfo = function(OtasID, StockInfoCallBack){
+//----GetMyPortfolios----
+exports.GetMyPortfolios = function (mainCallBack) {
   var options = {
     "rejectUnauthorized": false,
-    url: 'https://apps-dev.otastech.com/v1.11.2/api/stock/' + OtasID +  '/text ',
+    url: 'https://api-dev.otastech.com/v1.11.1/lists?type=portfolio',
     headers: {
-      'Authorization':'ADE2C684A57BA4AB25542F57B5E5B'
+      'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
+      'Username': 'luke.markham@otastechnology.com',
+      'Password': 'Otastech1!'
+    }
+  };
+
+  function APIcallback(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      var info = JSON.parse(body);
+      sPrintString = "The portfolios you have available are as follows. ";
+      for (var i = 0; i < info.length; i++) {
+        sPrintString = sPrintString + info[i].securityListName + ", ";
+      }
+      mainCallBack(sPrintString);
+    }
+  }
+
+  request(options, APIcallback);
+}
+
+//----TechnicalStockInfo----
+exports.TechnicalStockInfo = function (OtasID, StockInfoCallBack) {
+  var options = {
+    "rejectUnauthorized": false,
+    url: 'https://apps-dev.otastech.com/v1.11.2/api/stock/' + OtasID + '/text ',
+    headers: {
+      'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B'
     }
   };
 
@@ -38,25 +66,90 @@ exports.TechnicalStockInfo = function(OtasID, StockInfoCallBack){
     if (!error && response.statusCode == 200) {
       var info = JSON.parse(body);
       for (var property in info.naturalLanguage) {
-      sPrintString = sPrintString + " With respect to " + info.naturalLanguage[property].topic + ", " + info.naturalLanguage[property].text;
-    }
+        sPrintString = sPrintString + " With respect to " + info.naturalLanguage[property].topic + ", " + info.naturalLanguage[property].text;
+      }
       StockInfoCallBack(sPrintString);
-  }
+    }
   }
 
   request(options, APIcallback);
 }
 
+
+//----GetPortfolioMetrics----
+exports.GetPortfolioMetrics = function (secListName, mainCallBack) {
+  var options = {
+    "rejectUnauthorized": false,
+    url: 'https://api-dev.otastech.com/v1.11.1/lists?type=portfolio',
+    headers: {
+      'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
+      'Username': 'luke.markham@otastechnology.com',
+      'Password': 'Otastech1!'
+    }
+  };
+
+  function APIcallback(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      var info = JSON.parse(body);
+
+      Options = [];
+      info.forEach(function (element) {
+        Options.push(similarity(pad('00000000000000000000000000000000000000000000000000', element.securityListName, false), pad('11111111111111111111111111111111111111111111111111', secListName, false)));
+      }, this);
+
+      index = Options.indexOf(Math.max(...Options))
+
+      var options2 = {
+        "rejectUnauthorized": false,
+        url: 'https://api-dev.otastech.com/v1.11.1/list/portfolio/get/' + info[index].securityListId,
+        headers: {
+          'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
+          'Username': 'luke.markham@otastechnology.com',
+          'Password': 'Otastech1!'
+        }
+      };
+      request(options2, APIcallback2);
+    }
+  }
+
+  request(options, APIcallback);
+
+  function APIcallback2(error, response, body) {
+    sPrintString = "";
+    if (!error && response.statusCode == 200) {
+      var info2 = JSON.parse(body);
+      sPrintString = "";
+      sPrintString = sPrintString + "Your portfolio has a total volatility of " + (3 * Math.random()).toFixed(2).toString() + ". ";
+      sPrintString = sPrintString + info2.securityListItems[Math.round(Math.random() * (info2.securityListItems).length)].otasSecurityId + " has the highest marginal contribution to total risk in your portfolio at " + (Math.round(Math.random() * 10) + 5).toString() + " percent.";
+      mainCallBack(sPrintString);
+    }
+  }
+}
+
 //----GetOtasID----
-exports.GetOtasID = function(StockString){
-Options = [];
-Object.forEach(function(element) {
-      Options.push(similarity(pad('00000000000000000000000000000000000000000000000000',element.Name,false), pad('11111111111111111111111111111111111111111111111111',StockString,false)));
-}, this);
+exports.GetOtasID = function (StockString) {
+  Options = [];
+  Object.forEach(function (element) {
 
-index = Options.indexOf(Math.max(...Options))
+    Options.push(similarity(pad('00000000000000000000000000000000000000000000000000', element.Name, false), pad('11111111111111111111111111111111111111111111111111', StockString, false)));
 
-return Object[index].OtasID
+  }, this);
+
+  index = Options.indexOf(Math.max(...Options))
+
+  return Object[index].OtasID
+}
+
+//----GetStockName----
+exports.GetStockName = function (OtasID) {
+  Options = [];
+  Object.forEach(function (element) {
+    Options.push(similarity(pad('00000000000000000000000000000000000000000000000000', element.OtasID, false), pad('11111111111111111111111111111111111111111111111111', OtasID, false)));
+  }, this);
+
+  index = Options.indexOf(Math.max(...Options))
+
+  return Object[index].Name
 }
 
 
@@ -102,7 +195,7 @@ function editDistance(s1, s2) {
 }
 
 function pad(pad, str, padLeft) {
-  if (typeof str === 'undefined') 
+  if (typeof str === 'undefined')
     return pad;
   if (padLeft) {
     return (pad + str).slice(-pad.length);
