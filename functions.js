@@ -5,6 +5,7 @@ var Object = StockList.StockDatabase;
 
 //----StockInfo----
 exports.StockInfo = function (OtasID, StockInfoCallBack) {
+  
   var options = {
     "rejectUnauthorized": false,
     url: 'https://api-dev.otastech.com/v1.11.1/stock/' + OtasID + '/',

@@ -1,0 +1,34 @@
+{
+  "intents": [
+    {
+      "intent": "GetMyPortfolios"
+    },
+    {
+      "slots": [
+        {
+          "name": "StockString",
+          "type": "FTSE_three_fifty"
+        }
+      ],
+      "intent": "GetStockInfo"
+    },
+    {
+      "slots": [
+        {
+          "name": "StockString",
+          "type": "FTSE_three_fifty"
+        }
+      ],
+      "intent": "GetTechnicalInfo"
+    },
+    {
+      "slots": [
+        {
+          "name": "portfolioName",
+          "type": "FTSE_three_fifty"
+        }
+      ],
+      "intent": "GetPortfolioMetrics"
+    }
+  ]
+}

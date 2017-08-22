@@ -2,117 +2,56 @@ var request = require('request');
 var https = require('https')
 const myFunctions = require('./functions');
 
-exports.handler = (event, context) => {
-console.log("Started index.js");
-  try {
+const Alexa = require('alexa-sdk'); //newline
 
-    if (event.session.new) {
-      console.log("NEW SESSION")
-    }
+exports.handler = function(event, context, callback){
+  var alexa = Alexa.handler(event, context);
 
-    switch (event.request.type) {
-      case "LaunchRequest":
-      console.log(`LAUNCH REQUEST`)
-      context.succeed(
-        generateResponse(
-          buildSpeechletResponse("Welcome to an Alexa Skill", true),
-          {}
-        )
-      )
-      break;
+  alexa.registerHandlers(handlers);
+  alexa.execute();
+};
 
-      case "IntentRequest":
-      console.log(`INTENT REQUEST`)
-      switch(event.request.intent.name) {
-        case "GetPL":
-        context.succeed(
-          generateResponse(
-            buildSpeechletResponse(`your PL is 4`, true),
-            {}
-          )
-        )
-        break;
+var handlers = {
 
-        case "GetStockInfo":
-        var OtasID = myFunctions.GetOtasID(event.request.intent.slots.StockString.value);
-        myFunctions.StockInfo(OtasID, function(sPrintString){
-          context.succeed(
-            generateResponse(
-              buildSpeechletResponse(sPrintString, true),
-              {}
-            )
-          )
+  'LaunchRequest': function(){
+    this.emit('LaunchIntent');
+  },
+
+  'LaunchIntent': function(){
+    this.emit(':ask', "Welcome to OTAS, how can I help?");
+  },
+
+  'GetStockInfo': function(){
+        var objGetStockInfo = this;
+        var OtasID = myFunctions.GetOtasID(objGetStockInfo.event.request.intent.slots.StockString.value);
+        var Print = myFunctions.StockInfo(OtasID, function(sPrintString){
+          objGetStockInfo.emit(':tell', sPrintString);
           console.log(sPrintString + "\n");
         })
-        break;
+  },
 
-        case "GetTechnicalInfo":
-        var OtasID = myFunctions.GetOtasID(event.request.intent.slots.StockString.value);
+  'GetMyPortfolios': function(){
+      var objGetStockInfo = this;
+      myFunctions.GetMyPortfolios(function(sPrintString){
+        objGetStockInfo.emit(':tell', sPrintString);
+        console.log(sPrintString + "\n");
+      })
+  },
+
+  'GetTechnicalInfo': function(){
+      var objGetTechnicalInfo = this;
+      var OtasID = myFunctions.GetOtasID(objGetTechnicalInfo.event.request.intent.slots.StockString.value);
         myFunctions.TechnicalStockInfo(OtasID, function(sPrintString){
-          context.succeed(
-            generateResponse(
-              buildSpeechletResponse(sPrintString, true),
-              {}
-            )
-          )
+          objGetTechnicalInfo.emit(':tell', sPrintString);
           console.log(sPrintString + "\n");
         })
-        break;
+  },
 
-        case "GetMyPortfolios":
-        myFunctions.GetMyPortfolios(function(sPrintString){
-          context.succeed(
-            generateResponse(
-              buildSpeechletResponse(sPrintString, true),
-              {}
-            )
-          )
-          console.log(sPrintString + "\n");
-        })
-        break;
-
-        case "GetPortfolioMetrics":
-        myFunctions.GetPortfolioMetrics(event.request.intent.slots.portfolioName.value, function(sPrintString){
-          context.succeed(
-            generateResponse(
-              buildSpeechletResponse(sPrintString, true),
-              {}
-            )
-          )
-          console.log(sPrintString + "\n");
-        })
-        break;
-
-        default:
-        throw "Invalid intent"
-      }
-      break;
-
-      case "SessionEndedRequest":
-      console.log(`SESSION ENDED REQUEST`)
-      break;
-
-      default:
-      context.fail(`INVALID REQUEST TYPE: ${event.request.type}`)
-    }
-
-  } catch(error) { context.fail(`Exception: ${error}`) }
-}
-
-buildSpeechletResponse = (outputText, shouldEndSession) => {
-  return {
-    outputSpeech: {
-      type: "PlainText",
-      text: outputText
-    },
-    shouldEndSession: shouldEndSession
-  }
-}
-
-generateResponse = (speechletResponse, sessionAttributes) => {
-  return {
-    version: "1.0",
-    sessionAttributes: sessionAttributes,
-    response: speechletResponse
-  }
+  'GetPortfolioMetrics': function(){
+      var objGetPortfolioMetrics = this;
+      myFunctions.GetPortfolioMetrics(objGetPortfolioMetrics.event.request.intent.slots.portfolioName.value, function(sPrintString){
+        objGetPortfolioMetrics.emit(':tell', sPrintString);
+        console.log(sPrintString + "\n");
+      })
+  },
 }

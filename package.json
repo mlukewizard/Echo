@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "alexa-sdk": "^1.0.10"
   }
 }
