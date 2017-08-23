@@ -1,3 +1,5 @@
+"use strict";
+
 exports.StockDatabase = [
 {Name:"3i Infrastructure", BBTicker: "IN", OtasID: "OT.IN.S"},
 {Name:"AA", BBTicker: "AA", OtasID: "OT.AA.S"},
