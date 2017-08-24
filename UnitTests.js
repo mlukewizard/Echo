@@ -26,14 +26,14 @@ var [OtasID, dUncertainty] = miscFunctions.GetOtasID("bp");
 if (OtasID == "OT.BP.S") {console.log("GetOtasID test passed");}
 else {console.log("GetOtasID test failed");}
 
-alexaFunctions.TechnicalStockInfo(globalThis, function (sPrintString) {
-        if (sPrintString.substring(0, 10) == " With resp") {console.log("TechnicalStockInfo test passed");}
-        else { console.log("TechnicalStockInfo test failed"); }
+alexaFunctions.GetTechnicalStockInfo(globalThis, function (sPrintString) {
+        if (sPrintString.substring(0, 10) == " With resp") {console.log("GetTechnicalStockInfo test passed");}
+        else { console.log("GetTechnicalStockInfo test failed"); }
 });
 
-alexaFunctions.StockInfo(globalThis, function (sPrintString) {
-        if (sPrintString.substring(0, 10) == "BP p.l.c. ") {console.log("StockInfo test passed");}
-        else { console.log("StockInfo test failed"); }
+alexaFunctions.GetGeneralStockInfo(globalThis, function (sPrintString) {
+        if (sPrintString.substring(0, 10) == "BP p.l.c. ") {console.log("GetGeneralStockInfo test passed");}
+        else { console.log("GetGeneralStockInfo test failed"); }
 });
 
 alexaFunctions.GetMyPortfolios(globalThis, function (sPrintString) {

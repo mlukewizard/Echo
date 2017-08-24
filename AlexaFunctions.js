@@ -4,15 +4,16 @@ var https = require('https');
 const miscFunctions = require('./MiscFunctions');
 
 module.exports = {
-  StockInfo: StockInfo,
+  GetGeneralStockInfo: GetGeneralStockInfo,
   GetMyPortfolios: GetMyPortfolios,
-  TechnicalStockInfo: TechnicalStockInfo,
+  GetTechnicalStockInfo: GetTechnicalStockInfo,
   GetPortfolioMetrics: GetPortfolioMetrics,
 }
 
-//----StockInfo----
-function StockInfo(globalThis, StockInfoCallBack) {
+//----GetGeneralStockInfo----
+function GetGeneralStockInfo(globalThis, GetGeneralStockInfoCallBack) {
   try {
+    //globalThis.attributes['currentFunc'] = GetGeneralStockInfo;
     var [OtasID, dCertainty] = miscFunctions.GetOtasID(globalThis.event.request.intent.slots.StockString.value);
     var options = {
       "rejectUnauthorized": false,
@@ -26,16 +27,17 @@ function StockInfo(globalThis, StockInfoCallBack) {
 
     function APIcallback(error, response, body) {
       var info = JSON.parse(body);
-      StockInfoCallBack(info.description);
+      GetGeneralStockInfoCallBack(info.description);
     }
 
     request(options, APIcallback);
-  } catch (err) { StockInfoCallBack("Sorry, there has been an error in getting information for this stock."); }
+  } catch (err) { GetGeneralStockInfoCallBack("Sorry, there has been an error in getting information for this stock."); }
 }
 
 //----GetMyPortfolios----
 function GetMyPortfolios(globalThis, GetMyPortfoliosCallBack) {
   try {
+    //globalThis.attributes['currentFunc'] = GetMyPortfolios;
     var options = {
       "rejectUnauthorized": false,
       url: 'https://api-dev.otastech.com/v1.11.1/lists?type=portfolio',
@@ -59,9 +61,10 @@ function GetMyPortfolios(globalThis, GetMyPortfoliosCallBack) {
   } catch (error) { GetMyPortfoliosCallBack("Sorry, there's been an error in retrieving your portfolios.") }
 }
 
-//----TechnicalStockInfo----
-function TechnicalStockInfo(globalThis, StockInfoCallBack) {
+//----GetTechnicalStockInfo----
+function GetTechnicalStockInfo(globalThis, GetTechnicalStockInfoCallBack) {
   try {
+    //globalThis.attributes['currentFunc'] = GetTechnicalStockInfo;
     var [OtasID, dCertainty] = miscFunctions.GetOtasID(globalThis.event.request.intent.slots.StockString.value);
     var options = {
       "rejectUnauthorized": false,
@@ -77,18 +80,19 @@ function TechnicalStockInfo(globalThis, StockInfoCallBack) {
       for (var property in info.naturalLanguage) {
         sPrintString = sPrintString + " With respect to " + info.naturalLanguage[property].topic + ", " + info.naturalLanguage[property].text;
       }
-      StockInfoCallBack(sPrintString);
+      GetTechnicalStockInfoCallBack(sPrintString);
     }
 
     request(options, APIcallback);
-  } catch (error) { StockInfoCallBack("Sorry, there has been an error in getting technical stock information.") }
+  } catch (error) { GetTechnicalStockInfoCallBack("Sorry, there has been an error in getting technical stock information.") }
 }
 
 
 //----GetPortfolioMetrics----
 function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
-  const secListName = globalThis.event.request.intent.slots.portfolioName.value
   try {
+    //globalThis.attributes['currentFunc'] = GetPortfolioMetrics;
+    const secListName = globalThis.event.request.intent.slots.portfolioName.value
     var options = {
       "rejectUnauthorized": false,
       url: 'https://api-dev.otastech.com/v1.11.1/lists?type=portfolio',
