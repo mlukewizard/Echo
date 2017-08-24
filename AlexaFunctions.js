@@ -13,8 +13,58 @@ module.exports = {
 //----GetGeneralStockInfo----
 function GetGeneralStockInfo(globalThis, GetGeneralStockInfoCallBack) {
   try {
-    //globalThis.attributes['currentFunc'] = GetGeneralStockInfo;
-    var [OtasID, dCertainty] = miscFunctions.GetOtasID(globalThis.event.request.intent.slots.StockString.value);
+    if (!globalThis.attributes['resumePoint']){
+      GetGeneralStockInfoCallBack("Oh Tas functions cannot be run without opening Oh Tas first.", true)
+    }
+    if (globalThis.attributes['resumePoint'] == "A0"){ //If this is the first command after the program has launched, then set the currentFunc to this function
+      globalThis.attributes.GetGeneralStockInfo = {}
+      globalThis.attributes.GetGeneralStockInfo['userStockString'] = globalThis.event.request.intent.slots.StockString.value
+      globalThis.attributes['currentFunc'] = "GetGeneralStockInfo";
+    }
+    if (globalThis.attributes['currentFunc'] != "GetGeneralStockInfo"){
+      GetGeneralStockInfoCallBack("You can't call another Oh Tas function if you are already executing one", true)
+    }
+
+    var GetGeneralStockInfoCache = globalThis.attributes.GetGeneralStockInfo; //Simply shortening the variable name to make the rest of the code more readable
+
+    var [OtasID, sPredictedName, dCertainty] = miscFunctions.GetOtasID(GetGeneralStockInfoCache['userStockString']);
+    GetGeneralStockInfoCache['OtasID'] = OtasID
+
+    if (globalThis.attributes['resumePoint'] == "A0" && dCertainty < 0.6){//Checks if it's likely that you've managed to get the OtasID right
+      globalThis.attributes['resumePoint'] = "A1";
+      GetGeneralStockInfoCallBack("I'm not sure I understood that stock name correctly, did you mean " + sPredictedName + "?", false)
+    }else if (globalThis.attributes['resumePoint'] == "A1"){
+      if (globalThis.attributes['YesVsNo'] == "UserSaysNo"){ //Executes if the stock estimation is wrong
+        GetGeneralStockInfoCache['OtasID'] = "Null"; 
+        globalThis.attributes.GetGeneralStockInfo['userStockString'] = "Null"; 
+        globalThis.attributes['YesVsNo'] = "Null" //Resetting to "Null" to avoid bugs
+        globalThis.attributes['resumePoint'] = "A2";
+        GetGeneralStockInfoCallBack("I can also find a stock by ticker symbol, do you know it?", false) //offers to specify by stock symbol
+      }else if (globalThis.attributes['YesVsNo'] == "UserSaysYes"){ //Executes if the stock estimation is correct
+        globalThis.attributes['YesVsNo'] = "Null" //Resetting YesVsNo to avoid bugs
+      }
+    }
+
+    if (globalThis.attributes['resumePoint'] == "A2"){
+      if (globalThis.attributes['Ticker']){
+        [OtasID, sPredictedName, dCertainty] = miscFunctions.GetOtasIDFromTicker(globalThis.attributes['Ticker'])
+        if (OtasID == null){
+          GetGeneralStockInfoCallBack("I couldn't find that ticker symbol", true) //terminates the dialogue because the ticker symbol didnt match
+        }
+        else{
+          GetGeneralStockInfoCache['OtasID'] = OtasID
+        }
+      }
+      else if (globalThis.attributes['YesVsNo'] == "UserSaysNo"){
+        globalThis.attributes['YesVsNo'] = "Null" //Resetting YesVsNo to avoid bugs
+        GetGeneralStockInfoCallBack("Ok", true)
+      }
+      else if (globalThis.attributes['YesVsNo'] == "UserSaysYes"){
+        globalThis.attributes['YesVsNo'] = "Null" //Resetting YesVsNo to avoid bugs
+        GetGeneralStockInfoCallBack("Cool! In future you can just say it.", false)
+      }
+    }
+    
     var options = {
       "rejectUnauthorized": false,
       url: 'https://api-dev.otastech.com/v1.11.1/stock/' + OtasID + '/',
@@ -27,17 +77,26 @@ function GetGeneralStockInfo(globalThis, GetGeneralStockInfoCallBack) {
 
     function APIcallback(error, response, body) {
       var info = JSON.parse(body);
-      GetGeneralStockInfoCallBack(info.description);
+      GetGeneralStockInfoCallBack(info.description, true);
     }
 
     request(options, APIcallback);
-  } catch (err) { GetGeneralStockInfoCallBack("Sorry, there has been an error in getting information for this stock."); }
+  } catch (err) { GetGeneralStockInfoCallBack("Sorry, there has been an error in getting information for this stock. " + err, true); }
 }
 
 //----GetMyPortfolios----
 function GetMyPortfolios(globalThis, GetMyPortfoliosCallBack) {
   try {
-    //globalThis.attributes['currentFunc'] = GetMyPortfolios;
+    if (!globalThis.attributes['resumePoint']){
+      GetPortfolioMetricsCallBack("Oh Tas functions cannot be run without opening Oh Tas first.", true)
+    }
+    if (globalThis.attributes['resumePoint'] == "A0"){ //If this is the first command after the program has launched, then set the currentFunc to this function
+      globalThis.attributes['currentFunc'] = "GetMyPortfolios";
+    }
+    if (globalThis.attributes['currentFunc'] != "GetMyPortfolios"){
+      GetMyPortfoliosCallBack("You can't call another Oh Tas function if you are already executing one", true)
+    }
+
     var options = {
       "rejectUnauthorized": false,
       url: 'https://api-dev.otastech.com/v1.11.1/lists?type=portfolio',
@@ -54,18 +113,27 @@ function GetMyPortfolios(globalThis, GetMyPortfoliosCallBack) {
       for (var i = 0; i < info.length; i++) {
         sPrintString = sPrintString + info[i].securityListName + ", ";
       }
-      GetMyPortfoliosCallBack(sPrintString);
+      GetMyPortfoliosCallBack(sPrintString, true);
     }
 
     request(options, APIcallback);
-  } catch (error) { GetMyPortfoliosCallBack("Sorry, there's been an error in retrieving your portfolios.") }
+  } catch (error) { GetMyPortfoliosCallBack("Sorry, there has been an error in getting information for this stock. " + err, true) }
 }
 
 //----GetTechnicalStockInfo----
 function GetTechnicalStockInfo(globalThis, GetTechnicalStockInfoCallBack) {
   try {
-    //globalThis.attributes['currentFunc'] = GetTechnicalStockInfo;
-    var [OtasID, dCertainty] = miscFunctions.GetOtasID(globalThis.event.request.intent.slots.StockString.value);
+    if (!globalThis.attributes['resumePoint']){
+      GetTechnicalStockInfoCallBack("Oh Tas functions cannot be run without opening Oh Tas first.", true)
+    }
+    if (globalThis.attributes['resumePoint'] == "A0"){ //If this is the first command after the program has launched, then set the currentFunc to this function
+      globalThis.attributes['currentFunc'] = "GetTechnicalStockInfo";
+    }
+    if (globalThis.attributes['currentFunc'] != "GetTechnicalStockInfo"){
+      GetTechnicalStockInfoCallBack("You can't call another Oh Tas function if you are already executing one", true)
+    }
+    
+    var [OtasID, sPredictedName, dCertainty] = miscFunctions.GetOtasID(globalThis.event.request.intent.slots.StockString.value);
     var options = {
       "rejectUnauthorized": false,
       url: 'https://apps-dev.otastech.com/v1.11.2/api/stock/' + OtasID + '/text ',
@@ -80,18 +148,27 @@ function GetTechnicalStockInfo(globalThis, GetTechnicalStockInfoCallBack) {
       for (var property in info.naturalLanguage) {
         sPrintString = sPrintString + " With respect to " + info.naturalLanguage[property].topic + ", " + info.naturalLanguage[property].text;
       }
-      GetTechnicalStockInfoCallBack(sPrintString);
+      GetTechnicalStockInfoCallBack(sPrintString, true);
     }
 
     request(options, APIcallback);
-  } catch (error) { GetTechnicalStockInfoCallBack("Sorry, there has been an error in getting technical stock information.") }
+  } catch (error) { GetTechnicalStockInfoCallBack("Sorry, there has been an error in getting information for this stock. " + err, true) }
 }
 
 
 //----GetPortfolioMetrics----
 function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
   try {
-    //globalThis.attributes['currentFunc'] = GetPortfolioMetrics;
+    if (!globalThis.attributes['resumePoint']){
+      GetPortfolioMetricsCallBack("Oh Tas functions cannot be run without opening Oh Tas first.", true)
+    }
+    if (globalThis.attributes['resumePoint'] == "A0"){ //If this is the first command after the program has launched, then set the currentFunc to this function
+      globalThis.attributes['currentFunc'] = "GetPortfolioMetrics";
+    }
+    if (globalThis.attributes['currentFunc'] != "GetPortfolioMetrics"){
+      GetPortfolioMetricsCallBack("You can't call another Oh Tas function if you are already executing one", true)
+    }
+
     const secListName = globalThis.event.request.intent.slots.portfolioName.value
     var options = {
       "rejectUnauthorized": false,
@@ -128,14 +205,12 @@ function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
 
     function APIcallback2(error, response, body) {
       var sPrintString = "";
-      //if (!error && response.statusCode == 200) {
-
       var info2 = JSON.parse(body);
       sPrintString = "";
       sPrintString = sPrintString + "Your portfolio has a total volatility of " + (3 * Math.random()).toFixed(2).toString() + ". ";
-      sPrintString = sPrintString + info2.securityListItems[Math.round(Math.random() * ((info2.securityListItems).length-1))].otasSecurityId + " has the highest marginal contribution to total risk in your portfolio at " + (Math.round(Math.random() * 10) + 5).toString() + " percent.";
-      GetPortfolioMetricsCallBack(sPrintString);
+      sPrintString = sPrintString + info2.securityListItems[Math.round(Math.random() * ((info2.securityListItems).length - 1))].otasSecurityId + " has the highest marginal contribution to total risk in your portfolio at " + (Math.round(Math.random() * 10) + 5).toString() + " percent.";
+      GetPortfolioMetricsCallBack(sPrintString, true);
     }
-  } catch (error) { GetPortfolioMetricsCallBack("Sorry, there has been an error in getting portfolio metrics.") }
+  } catch (error) { GetPortfolioMetricsCallBack("Sorry, there has been an error in getting information for this stock. " + err, true) }
 }
 

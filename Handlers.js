@@ -12,54 +12,83 @@ var handlers = {
     },
 
     'LaunchIntent': function () {
-        this.emit(':ask', "Welcome to OTAS, how can I help?");
+        var globalThis = this;
+        globalThis.attributes['resumePoint'] = "A0"
+        this.emit(':ask', "Welcome to Oh Tas, how can I help?");
     },
 
     'GetGeneralStockInfo': function () {
         var globalThis = this;
-        var Print = alexaFunctions.GetGeneralStockInfo(globalThis, function (sPrintString) {
+        alexaFunctions.GetGeneralStockInfo(globalThis, function (sPrintString, bTerminate)  {
+            if (bTerminate){
             globalThis.emit(':tell', sPrintString);
             console.log(sPrintString + "\n");
+            }else{
+            globalThis.emit(':ask', sPrintString);
+            console.log(sPrintString + "\n"); 
+            }
         })
     },
 
     'GetMyPortfolios': function () {
         var globalThis = this;
-        alexaFunctions.GetMyPortfolios(globalThis, function (sPrintString) {
+        alexaFunctions.GetMyPortfolios(globalThis, function (sPrintString, bTerminate) {
+            if (bTerminate){
             globalThis.emit(':tell', sPrintString);
             console.log(sPrintString + "\n");
+            }else{
+            globalThis.emit(':ask', sPrintString);
+            console.log(sPrintString + "\n"); 
+            }
         })
     },
 
     'GetTechnicalStockInfo': function () {
         var globalThis = this;
-        alexaFunctions.GetTechnicalStockInfo(globalThis, function (sPrintString) {
+        alexaFunctions.GetTechnicalStockInfo(globalThis, function (sPrintString, bTerminate)  {
+            if (bTerminate){
             globalThis.emit(':tell', sPrintString);
             console.log(sPrintString + "\n");
+            }else{
+            globalThis.emit(':ask', sPrintString);
+            console.log(sPrintString + "\n"); 
+            }
         })
     },
 
     'GetPortfolioMetrics': function () {
         var globalThis = this;
-        alexaFunctions.GetPortfolioMetrics(globalThis, function (sPrintString) {
+        alexaFunctions.GetPortfolioMetrics(globalThis, function (sPrintString, bTerminate)  {
+            if (bTerminate){
             globalThis.emit(':tell', sPrintString);
             console.log(sPrintString + "\n");
+            }else{
+            globalThis.emit(':ask', sPrintString);
+            console.log(sPrintString + "\n"); 
+            }
         })
     },
-
+    //----Only helper functions from here onwards----
     'userYes': function () {
         var globalThis = this;
-        globalThis.attributes['YesVsNo'] = "yes";
+        globalThis.attributes['YesVsNo'] = "UserSaysYes";
         var workingSkill = globalThis.attributes['currentFunc']
         globalThis.emit(workingSkill);
     },
 
     'userNo': function () {
         var globalThis = this;
-        globalThis.attributes['YesVsNo'] = "no";
+        globalThis.attributes['YesVsNo'] = "UserSaysNo";
         var workingSkill = globalThis.attributes['currentFunc']
         globalThis.emit(workingSkill);
     },
+
+    'SpecifyTicker': function(){
+        var globalThis = this;
+        globalThis.attributes['Ticker'] = globalThis.event.request.intent.slots.ticker.value
+        var workingSkill = globalThis.attributes['currentFunc']
+        globalThis.emit(workingSkill);
+    }
 }
 
 exports.Handlers = handlers;

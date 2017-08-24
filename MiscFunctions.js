@@ -5,6 +5,7 @@ const StockList = require('./StockList');
 module.exports = {
     Similarity: Similarity,
     GetOtasID: GetOtasID,
+    GetOtasIDFromTicker: GetOtasIDFromTicker,
     GetStockName: GetStockName,
     Pad: Pad
 }
@@ -23,7 +24,25 @@ function GetOtasID(StockString) {
 
     var index = Options.indexOf(Math.max(...Options));
 
-    return [stockList[index].OtasID, Math.max(...Options)]
+    return [stockList[index].OtasID, stockList[index].Name, Math.max(...Options)]
+}
+
+//----GetOtasID----
+function GetOtasIDFromTicker(sTicker) {
+    //N.B. If this is running slowly then you could make this easier by simply matching sTicker to stockList[index].Name rather than using Similarity
+    var Options = [];
+    stockList.forEach(function (element) {
+
+        Options.push(Similarity(element.BBTicker,  sTicker));
+
+    }, this);
+
+    if (Math.max(...Options) != 1){
+        return [null, null, null] //If youre not getting a perfect match on BBTicker then its not good enough tbh
+    }else{
+    var index = Options.indexOf(Math.max(...Options));
+    return [stockList[index].OtasID, stockList[index].Name, Math.max(...Options)]
+    }
 }
 
 //----GetStockName----

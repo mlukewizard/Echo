@@ -19,10 +19,12 @@ globalThis.event.request.intent.slots = {}
 globalThis.event.request.intent.slots.portfolioName = {}
 globalThis.event.request.intent.slots.portfolioName.value = "PortfolioViaAPI"
 globalThis.event.request.intent.slots.StockString = {}
-globalThis.event.request.intent.slots.StockString.value = "OT.BP.S"
+globalThis.event.request.intent.slots.StockString.value = "asdf"
 globalThis.event.request.intent.slots.portfolioName = {}
+globalThis.attributes = {}
+globalThis.attributes['resumePoint'] = "A0"
 
-var [OtasID, dUncertainty] = miscFunctions.GetOtasID("bp");
+var [OtasID, sPredictedName, dCertainty] = miscFunctions.GetOtasID("bp");
 if (OtasID == "OT.BP.S") {console.log("GetOtasID test passed");}
 else {console.log("GetOtasID test failed");}
 
