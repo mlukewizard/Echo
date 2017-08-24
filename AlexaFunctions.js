@@ -11,7 +11,7 @@ module.exports = {
 }
 
 //----StockInfo----
-function StockInfo(OtasID, StockInfoCallBack) {
+function StockInfo(globalThis, OtasID, StockInfoCallBack) {
   try {
     var options = {
       "rejectUnauthorized": false,
@@ -33,7 +33,7 @@ function StockInfo(OtasID, StockInfoCallBack) {
 }
 
 //----GetMyPortfolios----
-function GetMyPortfolios(GetMyPortfoliosCallBack) {
+function GetMyPortfolios(globalThis, GetMyPortfoliosCallBack) {
   try {
     var options = {
       "rejectUnauthorized": false,
@@ -59,7 +59,7 @@ function GetMyPortfolios(GetMyPortfoliosCallBack) {
 }
 
 //----TechnicalStockInfo----
-function TechnicalStockInfo(OtasID, StockInfoCallBack) {
+function TechnicalStockInfo(globalThis, OtasID, StockInfoCallBack) {
   try {
     var options = {
       "rejectUnauthorized": false,
@@ -84,7 +84,8 @@ function TechnicalStockInfo(OtasID, StockInfoCallBack) {
 
 
 //----GetPortfolioMetrics----
-function GetPortfolioMetrics(secListName, GetPortfolioMetricsCallBack) {
+function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
+  const secListName = globalThis.event.request.intent.slots.portfolioName.value
   try {
     var options = {
       "rejectUnauthorized": false,
@@ -126,7 +127,7 @@ function GetPortfolioMetrics(secListName, GetPortfolioMetricsCallBack) {
       var info2 = JSON.parse(body);
       sPrintString = "";
       sPrintString = sPrintString + "Your portfolio has a total volatility of " + (3 * Math.random()).toFixed(2).toString() + ". ";
-      sPrintString = sPrintString + info2.securityListItems[Math.round(Math.random() * (info2.securityListItems).length)].otasSecurityId + " has the highest marginal contribution to total risk in your portfolio at " + (Math.round(Math.random() * 10) + 5).toString() + " percent.";
+      sPrintString = sPrintString + info2.securityListItems[Math.round(Math.random() * ((info2.securityListItems).length-1))].otasSecurityId + " has the highest marginal contribution to total risk in your portfolio at " + (Math.round(Math.random() * 10) + 5).toString() + " percent.";
       GetPortfolioMetricsCallBack(sPrintString);
     }
   } catch (error) { GetPortfolioMetricsCallBack("Sorry, there has been an error in getting portfolio metrics.") }
