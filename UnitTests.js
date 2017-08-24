@@ -18,17 +18,20 @@ globalThis.event.request.intent = {}
 globalThis.event.request.intent.slots = {}
 globalThis.event.request.intent.slots.portfolioName = {}
 globalThis.event.request.intent.slots.portfolioName.value = "PortfolioViaAPI"
+globalThis.event.request.intent.slots.StockString = {}
+globalThis.event.request.intent.slots.StockString.value = "OT.BP.S"
+globalThis.event.request.intent.slots.portfolioName = {}
 
-var OtasID = miscFunctions.GetOtasID("bp");
+var [OtasID, dUncertainty] = miscFunctions.GetOtasID("bp");
 if (OtasID == "OT.BP.S") {console.log("GetOtasID test passed");}
 else {console.log("GetOtasID test failed");}
 
-alexaFunctions.TechnicalStockInfo(globalThis, OtasID, function (sPrintString) {
+alexaFunctions.TechnicalStockInfo(globalThis, function (sPrintString) {
         if (sPrintString.substring(0, 10) == " With resp") {console.log("TechnicalStockInfo test passed");}
         else { console.log("TechnicalStockInfo test failed"); }
 });
 
-alexaFunctions.StockInfo(globalThis, OtasID, function (sPrintString) {
+alexaFunctions.StockInfo(globalThis, function (sPrintString) {
         if (sPrintString.substring(0, 10) == "BP p.l.c. ") {console.log("StockInfo test passed");}
         else { console.log("StockInfo test failed"); }
 });

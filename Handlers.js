@@ -17,8 +17,7 @@ var handlers = {
 
   'GetStockInfo': function () {
     var globalThis = this;
-    var OtasID = miscFunctions.GetOtasID(globalThis.event.request.intent.slots.StockString.value);
-    var Print = alexaFunctions.StockInfo(globalThis, OtasID, function (sPrintString) {
+    var Print = alexaFunctions.StockInfo(globalThis, function (sPrintString) {
       globalThis.emit(':tell', sPrintString);
       console.log(sPrintString + "\n");
     })
@@ -34,8 +33,7 @@ var handlers = {
 
   'GetTechnicalInfo': function () {
     var globalThis = this;
-    var OtasID = miscFunctions.GetOtasID(globalThis.event.request.intent.slots.StockString.value);
-    alexaFunctions.TechnicalStockInfo(globalThis, OtasID, function (sPrintString) {
+    alexaFunctions.TechnicalStockInfo(globalThis, function (sPrintString) {
       globalThis.emit(':tell', sPrintString);
       console.log(sPrintString + "\n");
     })

@@ -11,8 +11,9 @@ module.exports = {
 }
 
 //----StockInfo----
-function StockInfo(globalThis, OtasID, StockInfoCallBack) {
+function StockInfo(globalThis, StockInfoCallBack) {
   try {
+    var [OtasID, dCertainty] = miscFunctions.GetOtasID(globalThis.event.request.intent.slots.StockString.value);
     var options = {
       "rejectUnauthorized": false,
       url: 'https://api-dev.otastech.com/v1.11.1/stock/' + OtasID + '/',
@@ -59,8 +60,9 @@ function GetMyPortfolios(globalThis, GetMyPortfoliosCallBack) {
 }
 
 //----TechnicalStockInfo----
-function TechnicalStockInfo(globalThis, OtasID, StockInfoCallBack) {
+function TechnicalStockInfo(globalThis, StockInfoCallBack) {
   try {
+    var [OtasID, dCertainty] = miscFunctions.GetOtasID(globalThis.event.request.intent.slots.StockString.value);
     var options = {
       "rejectUnauthorized": false,
       url: 'https://apps-dev.otastech.com/v1.11.2/api/stock/' + OtasID + '/text ',

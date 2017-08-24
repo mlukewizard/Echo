@@ -16,13 +16,14 @@ function GetOtasID(StockString) {
     var Options = [];
     stockList.forEach(function (element) {
 
-        Options.push(Similarity(Pad('00000000000000000000000000000000000000000000000000', element.Name, false), Pad('11111111111111111111111111111111111111111111111111', StockString, false)));
+        //Options.push(Similarity(Pad('00000000000000000000000000000000000000000000000000', element.Name, false), Pad('11111111111111111111111111111111111111111111111111', StockString, false)));
+        Options.push(Similarity(element.Name,  StockString));
 
     }, this);
 
-    var index = Options.indexOf(Math.max(...Options))
+    var index = Options.indexOf(Math.max(...Options));
 
-    return stockList[index].OtasID
+    return [stockList[index].OtasID, Math.max(...Options)]
 }
 
 //----GetStockName----
