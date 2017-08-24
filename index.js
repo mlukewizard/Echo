@@ -1,6 +1,6 @@
 "use strict";
 
-const Alexa = require('alexa-sdk'); //newline
+const Alexa = require('alexa-sdk');
 const Handlers = require('./Handlers.js');
 
 const handlers = Handlers.Handlers;
