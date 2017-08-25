@@ -49,12 +49,8 @@ alexaFunctions.GetPortfolioMetrics(globalThis, function (sPrintString) {
         else { console.log("GetPortfolioMetrics test failed"); }
 })
 */
-
-switch (true){
-    case true:{
-        console.log("Case1")}
-    case false:{
-        console.log("Case2")}
-    case true:{
-        console.log("Case3")}
+try {
+        throw new error ("error") 
+} catch (error) {
+        console.log(error)
 }

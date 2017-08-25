@@ -13,69 +13,12 @@ module.exports = {
 //----GetGeneralStockInfo----
 function GetGeneralStockInfo(globalThis, GetGeneralStockInfoCallBack) {
   try {
-    //Runs if the function has been called before program launched
-    if (!globalThis.attributes['resumePoint']) {
-      GetGeneralStockInfoCallBack("Oh Tas functions cannot be run without opening Oh Tas first.", true)
-    }
 
-    //If this is the first command after the program has launched, then set the currentFunc to this function
-    if (globalThis.attributes['resumePoint'] === "A0") {
-      globalThis.attributes.GetGeneralStockInfo = {}
-      globalThis.attributes.GetGeneralStockInfo['userStockString'] = globalThis.event.request.intent.slots.StockString.value
-      globalThis.attributes['currentFunc'] = "GetGeneralStockInfo";
-    }
+    //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
+    miscFunctions.interLaunchChecks(globalThis, GetGeneralStockInfoCallBack, "GetGeneralStockInfo")
 
-    //Runs if the user calls this function but I was expecting the user to call something else
-    if (globalThis.attributes['currentFunc'] != "GetGeneralStockInfo") {
-      GetGeneralStockInfoCallBack("You can't call another Oh Tas function if you are already executing one", true)
-    }
-
-    //Simply shortening the variable name to make the rest of the code more readable
-    var GetGeneralStockInfoCache = globalThis.attributes.GetGeneralStockInfo;
-
-    //Gets OTAS ID given the parameter which is currently stored in the data cache, runs on every iteration
-    var [OtasID, sPredictedName, dCertainty] = miscFunctions.GetOtasID(GetGeneralStockInfoCache['userStockString']);
-    GetGeneralStockInfoCache['OtasID'] = OtasID
-
-    //Sees if it's the first run and if it is, checks if it's likely that you've managed to get the OtasID right
-    if (globalThis.attributes['resumePoint'] === "A0" && dCertainty < 0.6) {
-      globalThis.attributes['resumePoint'] = "A1";
-      GetGeneralStockInfoCallBack("I'm not sure I understood that stock name correctly, did you mean " + sPredictedName + "?", false)
-    }
-
-    //Runs only if this is the second run through, sees if the user has accepted the correction or not
-    if (globalThis.attributes['resumePoint'] === "A1") {
-      if (globalThis.attributes['YesVsNo'] === "UserSaysNo") { //Executes if the stock estimation is wrong
-        GetGeneralStockInfoCache['OtasID'] = "Null";
-        globalThis.attributes.GetGeneralStockInfo['userStockString'] = "Null";
-        globalThis.attributes['YesVsNo'] = "Null" //Resetting to "Null" to avoid bugs
-        globalThis.attributes['resumePoint'] = "A2";
-        GetGeneralStockInfoCallBack("I can also find a stock by ticker symbol, do you know it?", false) //offers to specify by stock symbol
-      } else if (globalThis.attributes['YesVsNo'] === "UserSaysYes") { //Executes if the stock estimation is correct
-        globalThis.attributes['YesVsNo'] = "Null" //Resetting YesVsNo to avoid bugs
-      }
-    }
-
-    //Runs only if this is the third run through, checks the ticker symbol which the user has given and sees if it matches any in the stock list
-    if (globalThis.attributes['resumePoint'] === "A2") {
-      if (globalThis.attributes['Ticker']) {
-        [OtasID, sPredictedName, dCertainty] = miscFunctions.GetOtasIDFromTicker(globalThis.attributes['Ticker'])
-        if (OtasID === null) {
-          GetGeneralStockInfoCallBack("I couldn't find that ticker symbol", true) //terminates the dialogue because the ticker symbol didnt match
-        }
-        else {
-          GetGeneralStockInfoCache['OtasID'] = OtasID
-        }
-      }
-      else if (globalThis.attributes['YesVsNo'] === "UserSaysNo") {
-        globalThis.attributes['YesVsNo'] = "Null" //Resetting YesVsNo to avoid bugs
-        GetGeneralStockInfoCallBack("Ok", true)
-      }
-      else if (globalThis.attributes['YesVsNo'] === "UserSaysYes") {
-        globalThis.attributes['YesVsNo'] = "Null" //Resetting YesVsNo to avoid bugs
-        GetGeneralStockInfoCallBack("Cool! In future you can just say it.", false)
-      }
-    }
+    //Abstracts the identification of the OTAS ID conversation
+    var OtasID = miscFunctions.interRobustGetOtasID(globalThis, GetGeneralStockInfoCallBack, "GetGeneralStockInfo")
 
     //If you get to here then you've got a correct OtasID and you can just continue
     if (globalThis.attributes['resumePoint'] === "A2"||globalThis.attributes['resumePoint'] === "A1"||globalThis.attributes['resumePoint'] === "A0") { globalThis.attributes['resumePoint'] = "A3" };
@@ -114,35 +57,53 @@ function GetGeneralStockInfo(globalThis, GetGeneralStockInfoCallBack) {
           }
         }
         
-        //GetGeneralStockInfoCallBack("Splitting string", false)
       //Executes if the string is short enough that you can just say it without needing to ask to continue  
       }else {
         GetGeneralStockInfoCallBack(sGeneralInfo, true);
-        //GetGeneralStockInfoCallBack("Not splitting anything", false)
       }
     }
 
     request(options, APIcallback);
-  } catch (err) { GetGeneralStockInfoCallBack("Sorry, there has been an error in getting information for this stock. " + err, true); }
+  } catch (err) { GetGeneralStockInfoCallBack("Sorry, there has been an error. " + err.stack, true); }
+}
+
+//----GetTechnicalStockInfo----
+function GetTechnicalStockInfo(globalThis, GetTechnicalStockInfoCallBack) {
+  try {
+
+    //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
+    miscFunctions.interLaunchChecks(globalThis, GetTechnicalStockInfoCallBack, "GetTechnicalStockInfo")
+
+    //Abstracts the identification of the OTAS ID conversation
+    var OtasID = miscFunctions.interRobustGetOtasID(globalThis, GetTechnicalStockInfoCallBack, "GetTechnicalStockInfo")
+
+    var options = {
+      "rejectUnauthorized": false,
+      url: 'https://apps-dev.otastech.com/v1.11.2/api/stock/' + OtasID + '/text ',
+      headers: {
+        'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B'
+      }
+    };
+
+    function APIcallback(error, response, body) {
+      var sPrintString = "";
+      var info = JSON.parse(body);
+      for (var property in info.naturalLanguage) {
+        sPrintString = sPrintString + " With respect to " + info.naturalLanguage[property].topic + ", " + info.naturalLanguage[property].text;
+      }
+      GetTechnicalStockInfoCallBack(sPrintString, true);
+    }
+
+    request(options, APIcallback);
+  } catch (error) { GetTechnicalStockInfoCallBack("Sorry, there has been an error. " + err.stack, true) }
 }
 
 //----GetMyPortfolios----
 function GetMyPortfolios(globalThis, GetMyPortfoliosCallBack) {
   try {
-    //Runs if the function has been called before program launched
-    if (!globalThis.attributes['resumePoint']) {
-      GetPortfolioMetricsCallBack("Oh Tas functions cannot be run without opening Oh Tas first.", true)
-    }
 
-    //If this is the first command after the program has launched, then set the currentFunc to this function
-    if (globalThis.attributes['resumePoint'] === "A0") {
-      globalThis.attributes['currentFunc'] = "GetMyPortfolios";
-    }
-
-    //Runs if the user calls this function but I was expecting the user to call something else
-    if (globalThis.attributes['currentFunc'] != "GetMyPortfolios") {
-      GetMyPortfoliosCallBack("You can't call another Oh Tas function if you are already executing one", true)
-    }
+    //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
+    miscFunctions.interLaunchChecks(globalThis, GetMyPortfoliosCallBack, "GetMyPortfolios")
 
     var options = {
       "rejectUnauthorized": false,
@@ -164,67 +125,15 @@ function GetMyPortfolios(globalThis, GetMyPortfoliosCallBack) {
     }
 
     request(options, APIcallback);
-  } catch (error) { GetMyPortfoliosCallBack("Sorry, there has been an error in getting information for this stock. " + err, true) }
+  } catch (error) { GetMyPortfoliosCallBack("Sorry, there has been an error. " + err.stack, true) }
 }
-
-//----GetTechnicalStockInfo----
-function GetTechnicalStockInfo(globalThis, GetTechnicalStockInfoCallBack) {
-  try {
-    //Runs if the function has been called before program launched
-    if (!globalThis.attributes['resumePoint']) {
-      GetTechnicalStockInfoCallBack("Oh Tas functions cannot be run without opening Oh Tas first.", true)
-    }
-
-    //If this is the first command after the program has launched, then set the currentFunc to this function
-    if (globalThis.attributes['resumePoint'] === "A0") {
-      globalThis.attributes['currentFunc'] = "GetTechnicalStockInfo";
-    }
-
-    //Runs if the user calls this function but I was expecting the user to call something else
-    if (globalThis.attributes['currentFunc'] != "GetTechnicalStockInfo") {
-      GetTechnicalStockInfoCallBack("You can't call another Oh Tas function if you are already executing one", true)
-    }
-
-    var [OtasID, sPredictedName, dCertainty] = miscFunctions.GetOtasID(globalThis.event.request.intent.slots.StockString.value);
-    var options = {
-      "rejectUnauthorized": false,
-      url: 'https://apps-dev.otastech.com/v1.11.2/api/stock/' + OtasID + '/text ',
-      headers: {
-        'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B'
-      }
-    };
-
-    function APIcallback(error, response, body) {
-      var sPrintString = "";
-      var info = JSON.parse(body);
-      for (var property in info.naturalLanguage) {
-        sPrintString = sPrintString + " With respect to " + info.naturalLanguage[property].topic + ", " + info.naturalLanguage[property].text;
-      }
-      GetTechnicalStockInfoCallBack(sPrintString, true);
-    }
-
-    request(options, APIcallback);
-  } catch (error) { GetTechnicalStockInfoCallBack("Sorry, there has been an error in getting information for this stock. " + err, true) }
-}
-
 
 //----GetPortfolioMetrics----
 function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
   try {
-    //Runs if the function has been called before program launched
-    if (!globalThis.attributes['resumePoint']) {
-      GetPortfolioMetricsCallBack("Oh Tas functions cannot be run without opening Oh Tas first.", true)
-    }
-
-    //If this is the first command after the program has launched, then set the currentFunc to this function
-    if (globalThis.attributes['resumePoint'] === "A0") {
-      globalThis.attributes['currentFunc'] = "GetPortfolioMetrics";
-    }
-
-    //Runs if the user calls this function but I was expecting the user to call something else
-    if (globalThis.attributes['currentFunc'] != "GetPortfolioMetrics") {
-      GetPortfolioMetricsCallBack("You can't call another Oh Tas function if you are already executing one", true)
-    }
+    
+    //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
+    miscFunctions.interLaunchChecks(globalThis, GetPortfolioMetricsCallBack, "GetPortfolioMetrics")
 
     const secListName = globalThis.event.request.intent.slots.portfolioName.value
     var options = {
@@ -268,6 +177,6 @@ function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
       sPrintString = sPrintString + info2.securityListItems[Math.round(Math.random() * ((info2.securityListItems).length - 1))].otasSecurityId + " has the highest marginal contribution to total risk in your portfolio at " + (Math.round(Math.random() * 10) + 5).toString() + " percent.";
       GetPortfolioMetricsCallBack(sPrintString, true);
     }
-  } catch (error) { GetPortfolioMetricsCallBack("Sorry, there has been an error in getting information for this stock. " + err, true) }
+  } catch (error) { GetPortfolioMetricsCallBack("Sorry, there has been an error. " + err.stack, true) }
 }
 

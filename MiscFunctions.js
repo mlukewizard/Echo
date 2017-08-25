@@ -7,10 +7,89 @@ module.exports = {
     GetOtasID: GetOtasID,
     GetOtasIDFromTicker: GetOtasIDFromTicker,
     GetStockName: GetStockName,
-    Pad: Pad
+    Pad: Pad,
+    interRobustGetOtasID: interRobustGetOtasID,
+    interLaunchChecks: interLaunchChecks,
 }
 
 var stockList = StockList.StockDatabase;
+
+//----interLaunchChecks----
+function interLaunchChecks(globalThis, CallBackFunc, callingFuncName){
+    //Runs if the function has been called before program launched
+    if (!globalThis.attributes['resumePoint']) {
+      (globalThis.attributes['resumePoint'] = "A0")
+    }
+
+    //If this is the first command after the program has launched, then set the currentFunc to this function
+    if (globalThis.attributes['resumePoint'] === "A0") {
+      globalThis.attributes.runningFunc = {}
+      globalThis.attributes['currentFunc'] = callingFuncName;
+    }
+
+    //Runs if the user calls this function but I was expecting the user to call something else
+    if (globalThis.attributes['currentFunc'] != callingFuncName) {
+      CallBackFunc("You can't call another Oh Tas function if you are already executing one", true)
+    }
+}
+
+//----interRobustGetOtasID----
+function interRobustGetOtasID(globalThis, CallBackFunc, callingFuncName){
+    //------------------
+    //Resume point after calling this function is A3
+    //------------------
+
+    //Sets the stock string in the storage object to the users slot value
+    if (globalThis.attributes['resumePoint'] === "A0") {globalThis.attributes.runningFunc['userStockString'] = globalThis.event.request.intent.slots.StockString.value}
+
+    //Simply shortening the variable name to make the rest of the code more readable
+    var runningFuncCache = globalThis.attributes.runningFunc;
+
+    //Gets OTAS ID given the parameter which is currently stored in the data cache, runs on every iteration
+    var [OtasID, sPredictedName, dCertainty] = GetOtasID(runningFuncCache['userStockString']);
+    runningFuncCache['OtasID'] = OtasID
+
+    //Sees if it's the first run and if it is, checks if it's likely that you've managed to get the OtasID right
+    if (globalThis.attributes['resumePoint'] === "A0" && dCertainty < 0.6) {
+      globalThis.attributes['resumePoint'] = "A1";
+      CallBackFunc("I'm not sure I understood that stock name correctly, did you mean " + sPredictedName + "?", false)
+    }
+
+    //Runs only if this is the second run through, sees if the user has accepted the correction or not
+    if (globalThis.attributes['resumePoint'] === "A1") {
+      if (globalThis.attributes['YesVsNo'] === "UserSaysNo") { //Executes if the stock estimation is wrong
+        runningFuncCache['OtasID'] = "Null";
+        globalThis.attributes.runningFunc['userStockString'] = "Null";
+        globalThis.attributes['YesVsNo'] = "Null" //Resetting to "Null" to avoid bugs
+        globalThis.attributes['resumePoint'] = "A2";
+        CallBackFunc("I can also find a stock by ticker symbol, do you know it?", false) //offers to specify by stock symbol
+      } else if (globalThis.attributes['YesVsNo'] === "UserSaysYes") { //Executes if the stock estimation is correct
+        globalThis.attributes['YesVsNo'] = "Null" //Resetting YesVsNo to avoid bugs
+      }
+    }
+
+    //Runs only if this is the third run through, checks the ticker symbol which the user has given and sees if it matches any in the stock list
+    if (globalThis.attributes['resumePoint'] === "A2") {
+      if (globalThis.attributes['Ticker']) {
+        [OtasID, sPredictedName, dCertainty] = GetOtasIDFromTicker(globalThis.attributes['Ticker'])
+        if (OtasID === null) {
+          CallBackFunc("I couldn't find that ticker symbol", true) //terminates the dialogue because the ticker symbol didnt match
+        }
+        else {
+          runningFuncCache['OtasID'] = OtasID
+        }
+      }
+      else if (globalThis.attributes['YesVsNo'] === "UserSaysNo") {
+        globalThis.attributes['YesVsNo'] = "Null" //Resetting YesVsNo to avoid bugs
+        CallBackFunc("Ok", true)
+      }
+      else if (globalThis.attributes['YesVsNo'] === "UserSaysYes") {
+        globalThis.attributes['YesVsNo'] = "Null" //Resetting YesVsNo to avoid bugs
+        CallBackFunc("Cool! In future you can just say it.", false)
+      }
+    }
+    return OtasID
+}
 
 //----GetOtasID----
 function GetOtasID(StockString) {
