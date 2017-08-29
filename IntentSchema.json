@@ -1,6 +1,30 @@
 {
   "intents": [
     {
+      "intent": "userYes"
+    },
+    {
+      "intent": "userNo"
+    },
+    {
+      "slots": [
+        {
+          "name": "ticker",
+          "type": "FTSE_three_fifty_TICKERS"
+        }
+      ],
+      "intent": "SpecifyTicker"
+    },
+    {
+      "slots": [
+        {
+          "name": "lookback",
+          "type": "FTSE_three_fifty_TICKERS"
+        }
+      ],
+      "intent": "PnL"
+    },
+    {
       "intent": "GetMyPortfolios"
     },
     {
@@ -10,7 +34,7 @@
           "type": "FTSE_three_fifty"
         }
       ],
-      "intent": "GetStockInfo"
+      "intent": "GetGeneralStockInfo"
     },
     {
       "slots": [
@@ -19,7 +43,7 @@
           "type": "FTSE_three_fifty"
         }
       ],
-      "intent": "GetTechnicalInfo"
+      "intent": "GetTechnicalStockInfo"
     },
     {
       "slots": [

@@ -8,17 +8,16 @@ module.exports = {
   GetMyPortfolios: GetMyPortfolios,
   GetTechnicalStockInfo: GetTechnicalStockInfo,
   GetPortfolioMetrics: GetPortfolioMetrics,
+  PnL: PnL,
 }
 
 //----GetGeneralStockInfo----
 function GetGeneralStockInfo(globalThis, GetGeneralStockInfoCallBack) {
-  try {
-
     //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
-    miscFunctions.interLaunchChecks(globalThis, GetGeneralStockInfoCallBack, "GetGeneralStockInfo")
+    miscFunctions.InterLaunchChecks(globalThis, GetGeneralStockInfoCallBack, "GetGeneralStockInfo")
 
     //Abstracts the identification of the OTAS ID conversation
-    var OtasID = miscFunctions.interRobustGetOtasID(globalThis, GetGeneralStockInfoCallBack, "GetGeneralStockInfo")
+    var OtasID = miscFunctions.InterRobustGetOtasID(globalThis, GetGeneralStockInfoCallBack, "GetGeneralStockInfo")
 
     //If you get to here then you've got a correct OtasID and you can just continue
     if (globalThis.attributes['resumePoint'] === "A2"||globalThis.attributes['resumePoint'] === "A1"||globalThis.attributes['resumePoint'] === "A0") { globalThis.attributes['resumePoint'] = "A3" };
@@ -44,38 +43,35 @@ function GetGeneralStockInfo(globalThis, GetGeneralStockInfoCallBack) {
         //If nothings been read yet, then read the start
         if (globalThis.attributes['resumePoint'] === "A3") {
           globalThis.attributes['resumePoint'] = "A4"
-          GetGeneralStockInfoCallBack(sFirstBit + ". Would you like for me to continue?", false)
+          GetGeneralStockInfoCallBack(sFirstBit + ". Would you like for me to continue?", globalThis, false)
 
         //If the first bit has already been read then take action based on whether the user wants more or not  
         }else if (globalThis.attributes['resumePoint'] === "A4"){
           if (globalThis.attributes['YesVsNo'] === "UserSaysNo"){
             globalThis.attributes['YesVsNo'] = "Null"
-            GetGeneralStockInfoCallBack("Ok", true)
+            GetGeneralStockInfoCallBack("Ok", globalThis, true)
           } else if (globalThis.attributes['YesVsNo'] === "UserSaysYes"){
             globalThis.attributes['YesVsNo'] = "Null"
-            GetGeneralStockInfoCallBack(sLastBit, true)
+            GetGeneralStockInfoCallBack(sLastBit, globalThis, true)
           }
         }
         
       //Executes if the string is short enough that you can just say it without needing to ask to continue  
       }else {
-        GetGeneralStockInfoCallBack(sGeneralInfo, true);
+        GetGeneralStockInfoCallBack(sGeneralInfo, globalThis, true);
       }
     }
 
     request(options, APIcallback);
-  } catch (err) { GetGeneralStockInfoCallBack("Sorry, there has been an error. " + err.stack, true); }
 }
 
 //----GetTechnicalStockInfo----
 function GetTechnicalStockInfo(globalThis, GetTechnicalStockInfoCallBack) {
-  try {
-
     //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
-    miscFunctions.interLaunchChecks(globalThis, GetTechnicalStockInfoCallBack, "GetTechnicalStockInfo")
+    miscFunctions.InterLaunchChecks(globalThis, GetTechnicalStockInfoCallBack, "GetTechnicalStockInfo")
 
     //Abstracts the identification of the OTAS ID conversation
-    var OtasID = miscFunctions.interRobustGetOtasID(globalThis, GetTechnicalStockInfoCallBack, "GetTechnicalStockInfo")
+    var OtasID = miscFunctions.InterRobustGetOtasID(globalThis, GetTechnicalStockInfoCallBack, "GetTechnicalStockInfo")
 
     var options = {
       "rejectUnauthorized": false,
@@ -91,19 +87,17 @@ function GetTechnicalStockInfo(globalThis, GetTechnicalStockInfoCallBack) {
       for (var property in info.naturalLanguage) {
         sPrintString = sPrintString + " With respect to " + info.naturalLanguage[property].topic + ", " + info.naturalLanguage[property].text;
       }
-      GetTechnicalStockInfoCallBack(sPrintString, true);
+      GetTechnicalStockInfoCallBack(sPrintString, globalThis, true);
     }
 
     request(options, APIcallback);
-  } catch (error) { GetTechnicalStockInfoCallBack("Sorry, there has been an error. " + err.stack, true) }
 }
 
 //----GetMyPortfolios----
 function GetMyPortfolios(globalThis, GetMyPortfoliosCallBack) {
-  try {
-
+    //globalThis.emit(':tell', "sPrintString");
     //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
-    miscFunctions.interLaunchChecks(globalThis, GetMyPortfoliosCallBack, "GetMyPortfolios")
+    miscFunctions.InterLaunchChecks(globalThis, GetMyPortfoliosCallBack, "GetMyPortfolios")
 
     var options = {
       "rejectUnauthorized": false,
@@ -121,19 +115,16 @@ function GetMyPortfolios(globalThis, GetMyPortfoliosCallBack) {
       for (var i = 0; i < info.length; i++) {
         sPrintString = sPrintString + info[i].securityListName + ", ";
       }
-      GetMyPortfoliosCallBack(sPrintString, true);
+      GetMyPortfoliosCallBack(sPrintString, globalThis, true);
     }
 
     request(options, APIcallback);
-  } catch (error) { GetMyPortfoliosCallBack("Sorry, there has been an error. " + err.stack, true) }
 }
 
 //----GetPortfolioMetrics----
 function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
-  try {
-    
     //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
-    miscFunctions.interLaunchChecks(globalThis, GetPortfolioMetricsCallBack, "GetPortfolioMetrics")
+    miscFunctions.InterLaunchChecks(globalThis, GetPortfolioMetricsCallBack, "GetPortfolioMetrics")
 
     const secListName = globalThis.event.request.intent.slots.portfolioName.value
     var options = {
@@ -175,8 +166,13 @@ function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
       sPrintString = "";
       sPrintString = sPrintString + "Your portfolio has a total volatility of " + (3 * Math.random()).toFixed(2).toString() + ". ";
       sPrintString = sPrintString + info2.securityListItems[Math.round(Math.random() * ((info2.securityListItems).length - 1))].otasSecurityId + " has the highest marginal contribution to total risk in your portfolio at " + (Math.round(Math.random() * 10) + 5).toString() + " percent.";
-      GetPortfolioMetricsCallBack(sPrintString, true);
+      GetPortfolioMetricsCallBack(sPrintString, globalThis, true);
     }
-  } catch (error) { GetPortfolioMetricsCallBack("Sorry, there has been an error. " + err.stack, true) }
 }
 
+//----PnL----
+function PnL(globalThis, PnLCallBack){
+    //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
+    miscFunctions.InterLaunchChecks(globalThis, PnLCallBack, "PnL")
+    PnLCallBack("Your P and L is 4", globalThis, true)
+  }
