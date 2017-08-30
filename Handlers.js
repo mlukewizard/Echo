@@ -34,8 +34,8 @@ var handlers = {
     },
 
     'PnL': function () {
-        try{
         var globalThis = this;
+        try{
         alexaFunctions.PnL(globalThis, miscFunctions.GenericCallBack)
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in PnL. " + err.stack);}
     },
@@ -53,6 +53,7 @@ var handlers = {
         alexaFunctions.GetPortfolioMetrics(globalThis, miscFunctions.GenericCallBack)
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetPortfolioMetrics. " + err.stack);}
     },
+    
     //----Only helper functions from here onwards----
     'userYes': function () {
         try{

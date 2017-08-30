@@ -1,0 +1,9 @@
+userYes yes
+userNo no
+SpecifyTicker yes its {ticker}
+SpecifyTicker {ticker}
+PnL What's my P and L for my portfolio named {portfolioName} {lookback}
+GetMyPortfolios list the portfolios I have saved in Otas
+GetGeneralStockInfo background information on {StockString}
+GetTechnicalStockInfo technical update on {StockString}
+GetPortfolioMetrics key metrics in my portfolio named {portfolioName}
