@@ -130,50 +130,14 @@ function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
   miscFunctions.InterLaunchChecks(globalThis, GetPortfolioMetricsCallBack, "GetPortfolioMetrics")
 
   const secListName = globalThis.event.request.intent.slots.portfolioName.value
-  var options = {
-    "rejectUnauthorized": false,
-    url: 'https://api-dev.otastech.com/v1.11.1/lists?type=portfolio',
-    headers: {
-      'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
-      'Username': 'luke.markham@otastechnology.com',
-      'Password': 'Otastech1!'
-    }
-  };
-
-  function APIcallback(error, response, body) {
-    var info = JSON.parse(body);
-    var Options = [];
-    info.forEach(function (element) {
-      Options.push(miscFunctions.Similarity(miscFunctions.Pad('00000000000000000000000000000000000000000000000000', element.securityListName, false), miscFunctions.Pad('11111111111111111111111111111111111111111111111111', secListName, false)));
-    }, this);
-
-    var index = Options.indexOf(Math.max(...Options))
-
-    var options2 = {
-      "rejectUnauthorized": false,
-      url: 'https://api-dev.otastech.com/v1.11.1/list/portfolio/get/' + info[index].securityListId,
-      headers: {
-        'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
-        'Username': 'luke.markham@otastechnology.com',
-        'Password': 'Otastech1!'
-      }
-    };
-
-    //This is the second call which takes the confirmed portfolio name and produces the risk analytics and Alexa's output
-    request(options2, APIcallback2)
-  }
-
-  //This is the first call which gets the list of available portfolios to compare the user defined string against
-  request(options, APIcallback);
-
-  function APIcallback2(error, response, body) {
-    var sPrintString = "";
-    var info2 = JSON.parse(body);
-    sPrintString = "";
+  
+  miscFunctions.GetPortfolioEntry(secListName, function(portfolioEntry){
+      var sPrintString = "";
     sPrintString = sPrintString + "Your portfolio has a total volatility of " + (3 * Math.random()).toFixed(2).toString() + ". ";
-    sPrintString = sPrintString + info2.securityListItems[Math.round(Math.random() * ((info2.securityListItems).length - 1))].otasSecurityId + " has the highest marginal contribution to total risk in your portfolio at " + (Math.round(Math.random() * 10) + 5).toString() + " percent.";
+    sPrintString = sPrintString + portfolioEntry.securityListItems[Math.round(Math.random() * ((portfolioEntry.securityListItems).length - 1))].otasSecurityId + " has the highest marginal contribution to total risk in your portfolio at " + (Math.round(Math.random() * 10) + 5).toString() + " percent.";
     GetPortfolioMetricsCallBack(sPrintString, globalThis, true);
-  }
+  })
+
 }
 
 //----PnL----

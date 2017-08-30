@@ -22,35 +22,35 @@ var handlers = {
     'GetGeneralStockInfo': function () {
         try{
         var globalThis = this;
-        alexaFunctions.GetGeneralStockInfo(globalThis, miscFunctions.GenericCallBack) 
+        alexaFunctions.GetGeneralStockInfo(globalThis, miscFunctions.interGenericCallBack) 
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetGeneralStockInfo. " + err.stack);}
     },
 
     'GetMyPortfolios': function () {
         try{
         var globalThis = this;
-        alexaFunctions.GetMyPortfolios(globalThis, miscFunctions.GenericCallBack)
+        alexaFunctions.GetMyPortfolios(globalThis, miscFunctions.interGenericCallBack)
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetMyPortfolios. " + err.stack);}
     },
 
     'PnL': function () {
         var globalThis = this;
         try{
-        alexaFunctions.PnL(globalThis, miscFunctions.GenericCallBack)
+        alexaFunctions.PnL(globalThis, miscFunctions.interGenericCallBack)
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in PnL. " + err.stack);}
     },
 
     'GetTechnicalStockInfo': function () {
         try{
         var globalThis = this;
-        alexaFunctions.GetTechnicalStockInfo(globalThis, miscFunctions.GenericCallBack)
+        alexaFunctions.GetTechnicalStockInfo(globalThis, miscFunctions.interGenericCallBack)
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetTechnicalStockInfo. " + err.stack);}
     },
 
     'GetPortfolioMetrics': function () {
         try{
         var globalThis = this;
-        alexaFunctions.GetPortfolioMetrics(globalThis, miscFunctions.GenericCallBack)
+        alexaFunctions.GetPortfolioMetrics(globalThis, miscFunctions.interGenericCallBack)
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetPortfolioMetrics. " + err.stack);}
     },
     

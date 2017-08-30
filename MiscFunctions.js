@@ -1,6 +1,8 @@
 "use strict";
 
 const StockList = require('./StockList');
+var request = require('request'); //Used by GetStockDailyFlags
+var https = require('https'); //Used by GetStockDailyFlags
 
 module.exports = {
     Similarity: Similarity,
@@ -10,20 +12,22 @@ module.exports = {
     Pad: Pad,
     InterRobustGetOtasID: InterRobustGetOtasID,
     InterLaunchChecks: InterLaunchChecks,
-    GenericCallBack:GenericCallBack
+    interGenericCallBack: interGenericCallBack,
+    GetStockDailyFlags: GetStockDailyFlags,
+    GetPortfolioEntry: GetPortfolioEntry,
 }
 
 var stockList = StockList.StockDatabase;
 
-//----GenericCallBack----
-function GenericCallBack(sPrintString, globalThis, bTerminate)  {
-            if (bTerminate){
-            globalThis.emit(':tell', sPrintString);
-            console.log(sPrintString + "\n");
-            }else{
-            globalThis.emit(':ask', sPrintString);
-            console.log(sPrintString + "\n"); 
-            }
+//----interGenericCallBack----
+function interGenericCallBack(sPrintString, globalThis, bTerminate) {
+    if (bTerminate) {
+        globalThis.emit(':tell', sPrintString);
+        console.log(sPrintString + "\n");
+    } else {
+        globalThis.emit(':ask', sPrintString);
+        console.log(sPrintString + "\n");
+    }
 }
 
 //----interLaunchChecks----
@@ -103,6 +107,81 @@ function InterRobustGetOtasID(globalThis, CallBackFunc, callingFuncName) {
     return OtasID
 }
 
+//----GetPortfolioEntry----
+function GetPortfolioEntry(secListName, GetPortfolioEntryCallBack){
+    var options = {
+    "rejectUnauthorized": false,
+    url: 'https://api-dev.otastech.com/v1.11.1/lists?type=portfolio',
+    headers: {
+      'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
+      'Username': 'luke.markham@otastechnology.com',
+      'Password': 'Otastech1!'
+    }
+  };
+
+  function APIcallback(error, response, body) {
+    var info = JSON.parse(body);
+    var Options = [];
+    info.forEach(function (element) {
+      Options.push(Similarity(Pad('00000000000000000000000000000000000000000000000000', element.securityListName, false), Pad('11111111111111111111111111111111111111111111111111', secListName, false)));
+    }, this);
+
+    var index = Options.indexOf(Math.max(...Options))
+
+    var options2 = {
+      "rejectUnauthorized": false,
+      url: 'https://api-dev.otastech.com/v1.11.1/list/portfolio/get/' + info[index].securityListId,
+      headers: {
+        'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
+        'Username': 'luke.markham@otastechnology.com',
+        'Password': 'Otastech1!'
+      }
+    };
+
+    //This is the second call which takes the confirmed portfolio name and produces the risk analytics and Alexa's output
+    request(options2, APIcallback2)
+  }
+
+  //This is the first call which gets the list of available portfolios to compare the user defined string against
+  request(options, APIcallback);
+
+  function APIcallback2(error, response, body) {
+    var sPrintString = "";
+    var info2 = JSON.parse(body);
+    GetPortfolioEntryCallBack(info2)
+  }
+}
+
+//----GetStockDailyFlags----
+function GetStockDailyFlags(OtasID, topic, scoper, GetStockDailyFlagsCallBack) {
+
+    var options = {
+        "rejectUnauthorized": false,
+        url: 'https://api-dev.otastech.com/v1.11.1/stock/' + OtasID + '/dailyflags',
+        headers: {
+            'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
+            'Username': 'luke.markham@otastechnology.com',
+            'Password': 'Otastech1!'
+        }
+    };
+
+    function APIcallback(error, response, body) {
+        var info = JSON.parse(body);
+        if (topic === null) {
+            GetStockDailyFlagsCallBack(info.dailyFlags)
+        }else{
+            if (scoper == null){
+            GetStockDailyFlagsCallBack(info.dailyFlags[topic])
+            } else{
+                var topicalFlags = info.dailyFlags[topic]
+                GetStockDailyFlagsCallBack(topicalFlags[scoper])
+            }
+        }
+    }
+
+    request(options, APIcallback);
+}
+
 //----GetOtasID----
 function GetOtasID(StockString) {
     var Options = [];
@@ -118,7 +197,7 @@ function GetOtasID(StockString) {
     return [stockList[index].OtasID, stockList[index].Name, Math.max(...Options)]
 }
 
-//----GetOtasID----
+//----GetOtasIDFromTicker----
 function GetOtasIDFromTicker(sTicker) {
     //N.B. If this is running slowly then you could make this easier by simply matching sTicker to stockList[index].Name rather than using Similarity
     var Options = [];

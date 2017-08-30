@@ -11,6 +11,9 @@ const handlers = Handlers.Handlers;
 var request = require('request');
 var https = require('https')
 
+miscFunctions.GetStockDailyFlags("OT.VOD.S", "volatility" , "mean" ,function(flagInfo){
+    console.log(flagInfo)
+})
 
 var globalThis = {};
 globalThis.event = {}
