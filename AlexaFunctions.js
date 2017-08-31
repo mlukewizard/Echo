@@ -76,24 +76,13 @@ function GetTechnicalStockInfo(globalThis, GetTechnicalStockInfoCallBack) {
   //Abstracts the identification of the OTAS ID conversation
   var OtasID = miscFunctions.InterRobustGetOtasID(globalThis, GetTechnicalStockInfoCallBack, "GetTechnicalStockInfo")
 
-  var options = {
-    "rejectUnauthorized": false,
-    url: 'https://apps-dev.otastech.com/v1.11.2/api/stock/' + OtasID + '/text ',
-    headers: {
-      'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B'
-    }
-  };
-
-  function APIcallback(error, response, body) {
-    var sPrintString = "";
-    var info = JSON.parse(body);
-    for (var property in info.naturalLanguage) {
-      sPrintString = sPrintString + " With respect to " + info.naturalLanguage[property].topic + ", " + info.naturalLanguage[property].text;
-    }
-    GetTechnicalStockInfoCallBack(sPrintString, globalThis, true);
+  miscFunctions.GetStockNaturalLanguage(OtasID, null, function (naturalLanguageReport){
+    var sPrintString = ""
+    for (var property in naturalLanguageReport) {
+    sPrintString = sPrintString + " With respect to " + naturalLanguageReport[property].topic + ", " + naturalLanguageReport[property].text;
   }
-
-  request(options, APIcallback);
+  GetTechnicalStockInfoCallBack(sPrintString, globalThis, true);
+})
 }
 
 //----GetMyPortfolios----
@@ -130,9 +119,9 @@ function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
   miscFunctions.InterLaunchChecks(globalThis, GetPortfolioMetricsCallBack, "GetPortfolioMetrics")
 
   const secListName = globalThis.event.request.intent.slots.portfolioName.value
-  
-  miscFunctions.GetPortfolioEntry(secListName, function(portfolioEntry){
-      var sPrintString = "";
+
+  miscFunctions.GetPortfolioEntry(secListName, function (portfolioEntry) {
+    var sPrintString = "";
     sPrintString = sPrintString + "The portfolio " + portfolioEntry.securityListName + " has a total volatility of " + (3 * Math.random()).toFixed(2).toString() + ". ";
     sPrintString = sPrintString + portfolioEntry.securityListItems[Math.round(Math.random() * ((portfolioEntry.securityListItems).length - 1))].otasSecurityId + " has the highest marginal contribution to total risk in your portfolio at " + (Math.round(Math.random() * 10) + 5).toString() + " percent.";
     GetPortfolioMetricsCallBack(sPrintString, globalThis, true);
