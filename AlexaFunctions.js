@@ -133,7 +133,7 @@ function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
   
   miscFunctions.GetPortfolioEntry(secListName, function(portfolioEntry){
       var sPrintString = "";
-    sPrintString = sPrintString + "Your portfolio has a total volatility of " + (3 * Math.random()).toFixed(2).toString() + ". ";
+    sPrintString = sPrintString + "The portfolio " + portfolioEntry.securityListName + " has a total volatility of " + (3 * Math.random()).toFixed(2).toString() + ". ";
     sPrintString = sPrintString + portfolioEntry.securityListItems[Math.round(Math.random() * ((portfolioEntry.securityListItems).length - 1))].otasSecurityId + " has the highest marginal contribution to total risk in your portfolio at " + (Math.round(Math.random() * 10) + 5).toString() + " percent.";
     GetPortfolioMetricsCallBack(sPrintString, globalThis, true);
   })

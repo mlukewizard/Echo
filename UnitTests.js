@@ -11,10 +11,6 @@ const handlers = Handlers.Handlers;
 var request = require('request');
 var https = require('https')
 
-miscFunctions.GetStockDailyFlags("OT.VOD.S", "volatility" , "mean" ,function(flagInfo){
-    console.log(flagInfo)
-})
-
 var globalThis = {};
 globalThis.event = {}
 globalThis.event.request = {}
@@ -28,6 +24,16 @@ globalThis.event.request.intent.slots.lookback = {}
 globalThis.event.request.intent.slots.lookback.value = "this month"
 globalThis.attributes = {}
 globalThis.attributes['resumePoint'] = "A0"
+
+miscFunctions.GetStockDailyFlags("OT.VOD.S", "volatility" , null ,function(flagInfo){
+    if (flagInfo.flagType === "volatility"){console.log("GetStockDailyFlags test passed")}else{
+        console.log("GetStockDailyFlags test failed")}
+})
+
+miscFunctions.GetPortfolioEntry("portfolioviaapi" ,function(flagInfo){
+    if (flagInfo.securityListName === "PortfolioViaAPI"){console.log("GetPortfolioEntry test passed")}else{
+        console.log("GetPortfolioEntry test failed")}
+})
 
 var [OtasID, sPredictedName, dCertainty] = miscFunctions.GetOtasID("vodafone group");
 if (OtasID === "OT.VOD.S") {console.log("GetOtasID test passed");}
@@ -53,7 +59,7 @@ alexaFunctions.GetMyPortfolios(globalThis, function (sPrintString) {
 
 globalThis.attributes['resumePoint'] = "A0"
 alexaFunctions.GetPortfolioMetrics(globalThis, function (sPrintString) {
-        if (sPrintString.substring(0, 10) === "Your portf") { console.log("GetPortfolioMetrics test passed"); }
+        if (sPrintString.substring(0, 10) === "The portfo") { console.log("GetPortfolioMetrics test passed"); }
         else { console.log("GetPortfolioMetrics test failed"); }
 })
 
