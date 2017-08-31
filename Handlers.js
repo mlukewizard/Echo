@@ -53,6 +53,27 @@ var handlers = {
         alexaFunctions.GetPortfolioMetrics(globalThis, miscFunctions.interGenericCallBack)
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetPortfolioMetrics. " + err.stack);}
     },
+
+    'GetHighestInPortfolio': function () {
+        try{
+        var globalThis = this;
+        alexaFunctions.GetHighestInPortfolio(globalThis, miscFunctions.interGenericCallBack)
+        }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetHighestInPortfolio. " + err.stack);}
+    },
+
+    'GetLowestInPortfolio': function () {
+        try{
+        var globalThis = this;
+        alexaFunctions.GetLowestInPortfolio(globalThis, miscFunctions.interGenericCallBack)
+        }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetLowestInPortfolio. " + err.stack);}
+    },
+
+    'GetStockNaturalLanguage': function () {
+        try{
+        var globalThis = this;
+        alexaFunctions.GetStockNaturalLanguage(globalThis, miscFunctions.interGenericCallBack)
+        }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetStockNaturalLanguage. " + err.stack);}
+    },
     
     //----Only helper functions from here onwards----
     'userYes': function () {

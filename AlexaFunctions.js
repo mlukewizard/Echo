@@ -9,6 +9,9 @@ module.exports = {
   GetTechnicalStockInfo: GetTechnicalStockInfo,
   GetPortfolioMetrics: GetPortfolioMetrics,
   PnL: PnL,
+  GetHighestInPortfolio: GetHighestInPortfolio,
+  GetLowestInPortfolio: GetLowestInPortfolio,
+  GetStockNaturalLanguage: GetStockNaturalLanguage,
 }
 
 //----GetGeneralStockInfo----
@@ -146,4 +149,41 @@ function PnL(globalThis, PnLCallBack) {
 
   PnLCallBack("Your P and L " + lookBack + " for portfolio named " + secListName + " is " + (20 * multiplier * (Math.random() - 0.3) * multiplier).toFixed(2) + " million US dollars.", globalThis, true)
   //globalThis.emit(':tell', "Your P and L " + lookBack + " for portfolio named " + secListName + " is " + (20 * multiplier * (Math.random() - 0.3) * multiplier).toFixed(2) + " million US dollars.");
+}
+
+//----GetHighestInPortfolio----
+function GetHighestInPortfolio(globalThis, GetHighestInPortfolioCallBack) {
+  //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
+  miscFunctions.InterLaunchChecks(globalThis, GetHighestInPortfolioCallBack, "GetHighestInPortfolio")
+
+  const secListName = globalThis.event.request.intent.slots.portfolioName.value
+
+  miscFunctions.GetPortfolioEntry(secListName, function (portfolioEntry) {
+    GetHighestInPortfolioCallBack(portfolioEntry.securityListName, globalThis, true)
+  })
+  
+}
+
+//----GetLowestInPortfolio----
+function GetLowestInPortfolio(globalThis, GetLowestInPortfolioCallBack) {
+  //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
+  miscFunctions.InterLaunchChecks(globalThis, GetLowestInPortfolioCallBack, "GetLowestInPortfolio")
+
+  const secListName = globalThis.event.request.intent.slots.portfolioName.value
+
+  miscFunctions.GetPortfolioEntry(secListName, function (portfolioEntry) {
+    GetLowestInPortfolioCallBack(portfolioEntry.securityListName, globalThis, true)
+  })
+  
+}
+
+//----GetStockNaturalLanguage----
+function GetStockNaturalLanguage(globalThis, GetStockNaturalLanguageCallBack) {
+  //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
+  miscFunctions.InterLaunchChecks(globalThis, GetStockNaturalLanguageCallBack, "GetStockNaturalLanguage")
+
+  //Abstracts the identification of the OTAS ID conversation
+  var OtasID = miscFunctions.InterRobustGetOtasID(globalThis, GetStockNaturalLanguageCallBack, "GetStockNaturalLanguage")
+
+  GetStockNaturalLanguageCallBack(OtasID, globalThis, true)
 }
