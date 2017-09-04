@@ -1,6 +1,7 @@
 "use strict";
 var request = require('request');
 var https = require('https');
+const Lists = require('./Lists');
 const miscFunctions = require('./MiscFunctions');
 
 module.exports = {
@@ -9,10 +10,13 @@ module.exports = {
   GetTechnicalStockInfo: GetTechnicalStockInfo,
   GetPortfolioMetrics: GetPortfolioMetrics,
   PnL: PnL,
-  GetHighestInPortfolio: GetHighestInPortfolio,
-  GetLowestInPortfolio: GetLowestInPortfolio,
+  GetHighOrLowInPortfolio: GetHighOrLowInPortfolio,
   GetStockNaturalLanguage: GetStockNaturalLanguage,
 }
+
+var stockList = Lists.StockDatabase;
+var naturalLanguageTopics = Lists.naturalLanguageTopics;
+var dailyFlagTopics = Lists.dailyFlagTopics;
 
 //----GetGeneralStockInfo----
 function GetGeneralStockInfo(globalThis, GetGeneralStockInfoCallBack) {
@@ -79,13 +83,13 @@ function GetTechnicalStockInfo(globalThis, GetTechnicalStockInfoCallBack) {
   //Abstracts the identification of the OTAS ID conversation
   var OtasID = miscFunctions.InterRobustGetOtasID(globalThis, GetTechnicalStockInfoCallBack, "GetTechnicalStockInfo")
 
-  miscFunctions.GetStockNaturalLanguage(OtasID, null, function (naturalLanguageReport){
+  miscFunctions.StockNaturalLanguageFromAPI(OtasID, function (naturalLanguageReport) {
     var sPrintString = ""
     for (var property in naturalLanguageReport) {
-    sPrintString = sPrintString + " With respect to " + naturalLanguageReport[property].topic + ", " + naturalLanguageReport[property].text;
-  }
-  GetTechnicalStockInfoCallBack(sPrintString, globalThis, true);
-})
+      sPrintString = sPrintString + " With respect to " + naturalLanguageReport[property].topic + ", " + naturalLanguageReport[property].text;
+    }
+    GetTechnicalStockInfoCallBack(sPrintString, globalThis, true);
+  })
 }
 
 //----GetMyPortfolios----
@@ -151,19 +155,64 @@ function PnL(globalThis, PnLCallBack) {
   //globalThis.emit(':tell', "Your P and L " + lookBack + " for portfolio named " + secListName + " is " + (20 * multiplier * (Math.random() - 0.3) * multiplier).toFixed(2) + " million US dollars.");
 }
 
-//----GetHighestInPortfolio----
-function GetHighestInPortfolio(globalThis, GetHighestInPortfolioCallBack) {
+//----GetHighOrLowInPortfolio----
+function GetHighOrLowInPortfolio(globalThis, HighOrLow, GetHighOrLowInPortfolioCallBack) {
   //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
-  miscFunctions.InterLaunchChecks(globalThis, GetHighestInPortfolioCallBack, "GetHighestInPortfolio")
+  miscFunctions.InterLaunchChecks(globalThis, GetHighOrLowInPortfolioCallBack, "GetHighOrLowInPortfolio")
 
   const secListName = globalThis.event.request.intent.slots.portfolioName.value
 
+  var userDailyFlagParameter = globalThis.event.request.intent.slots.dailyFlagParameter.value;
+
+  var Options = [];
+  dailyFlagTopics.forEach(function (element) {
+    Options.push(miscFunctions.Similarity(element.UserInvocation, userDailyFlagParameter));
+  }, this);
+  var index = Options.indexOf(Math.max(...Options))
+  var actualDailyFlagParameter = dailyFlagTopics[index].UserInvocation
+  var OtasDailyFlagParameter = dailyFlagTopics[index].OtasInvocation
+
+  var scoper = ""
+  if (OtasDailyFlagParameter === "directorDealings") { GetHighOrLowInPortfolioCallBack("Director dealings isnt quantifiable", globalThis, true); }
+  else if (OtasDailyFlagParameter === "epsMomentum") { scoper = "percentile" }
+  else if (OtasDailyFlagParameter === "performance") { scoper = "returnAbsolute1d" }
+  else { scoper = "currentLevel" }
+
   miscFunctions.GetPortfolioEntry(secListName, function (portfolioEntry) {
-    GetHighestInPortfolioCallBack(portfolioEntry.securityListName, globalThis, true)
+    var portfolioStats = [],
+      i = 0;
+    console.log("Got here at least")
+    //Looping throught each portfolio item, each item is a stock
+    portfolioEntry.securityListItems.forEach(function (portfolioItem) {
+      miscFunctions.StockDailyFlagsFromAPI(portfolioItem.otasSecurityId, function (objDailyFlags) {
+        console.log(portfolioItem.otasSecurityId)
+        if (objDailyFlags.hasOwnProperty(OtasDailyFlagParameter)) {
+          var topic = objDailyFlags[OtasDailyFlagParameter]
+          console.log(topic)
+          try { portfolioStats.push({ stockName: portfolioItem.otasSecurityId, stat: topic[scoper] }) } catch (err) { portfolioStats.push({ stockName: portfolioItem.otasSecurityId, stat: null }) }
+        } else { console.log("doesnt have this property") }
+        console.log("current i is " + i)
+        console.log("length is " + portfolioEntry.securityListItems.length)
+        if (++i === portfolioEntry.securityListItems.length) {
+
+          //Calculates either the maximum value of the stat or the minimum value
+          console.log("program count is " + i)
+          if (HighOrLow == "High") { var statVal = Math.max.apply(Math, portfolioStats.map(function (element) { return element.stat })) }
+          else if (HighOrLow == "Low") { var statVal = Math.min.apply(Math, portfolioStats.map(function (element) { return element.stat })) }
+
+          //Gets the stock name which has this value
+          var stockName = portfolioStats.find(function (element) { return element.stat == statVal; }).stockName
+
+          //Print an output dependent on the response
+          if (HighOrLow == "High") { GetHighOrLowInPortfolioCallBack("The stock with the highest " + actualDailyFlagParameter + " in your portfolio named " + secListName + " is " + miscFunctions.GetStockName(stockName)[0] + " with a value of " + statVal + ".", globalThis, true) }
+          else if (HighOrLow == "Low") { GetHighOrLowInPortfolioCallBack("The stock with the lowest " + actualDailyFlagParameter + " in your portfolio named " + secListName + " is " + miscFunctions.GetStockName(stockName)[0] + " with a value of " + statVal + ".", globalThis, true) }
+        }
+      })
+    })
   })
-  
 }
 
+/*
 //----GetLowestInPortfolio----
 function GetLowestInPortfolio(globalThis, GetLowestInPortfolioCallBack) {
   //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
@@ -171,11 +220,22 @@ function GetLowestInPortfolio(globalThis, GetLowestInPortfolioCallBack) {
 
   const secListName = globalThis.event.request.intent.slots.portfolioName.value
 
+  var userdailyFlagParameter = globalThis.event.request.intent.slots.dailyFlagParameter.value;
+
+  var Options = [];
+  dailyFlagTopics.forEach(function (element) {
+    Options.push(miscFunctions.Similarity(element.UserInvocation, userdailyFlagParameter));
+  }, this);
+  var index = Options.indexOf(Math.max(...Options))
+  var dailyFlagParameter = dailyFlagTopics[index].OtasInvocation
+
   miscFunctions.GetPortfolioEntry(secListName, function (portfolioEntry) {
-    GetLowestInPortfolioCallBack(portfolioEntry.securityListName, globalThis, true)
+
+
   })
-  
+
 }
+*/
 
 //----GetStockNaturalLanguage----
 function GetStockNaturalLanguage(globalThis, GetStockNaturalLanguageCallBack) {
@@ -185,5 +245,20 @@ function GetStockNaturalLanguage(globalThis, GetStockNaturalLanguageCallBack) {
   //Abstracts the identification of the OTAS ID conversation
   var OtasID = miscFunctions.InterRobustGetOtasID(globalThis, GetStockNaturalLanguageCallBack, "GetStockNaturalLanguage")
 
-  GetStockNaturalLanguageCallBack(OtasID, globalThis, true)
+  var userNaturalLanguageParameter = globalThis.event.request.intent.slots.naturalLanguageParameter.value
+
+  var Options = [];
+  naturalLanguageTopics.forEach(function (element) {
+    Options.push(miscFunctions.Similarity(element.UserInvocation, userNaturalLanguageParameter));
+  }, this);
+  var index = Options.indexOf(Math.max(...Options))
+  var naturalLanguageParameter = naturalLanguageTopics[index].OtasInvocation
+
+  miscFunctions.StockNaturalLanguageFromAPI(OtasID, function (ApiReturnNaturalLanguage) {
+    GetStockNaturalLanguageCallBack(ApiReturnNaturalLanguage[naturalLanguageParameter].text, globalThis, true)
+  })
+
+
 }
+
+

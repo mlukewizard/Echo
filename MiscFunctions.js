@@ -1,8 +1,9 @@
 "use strict";
 
-const StockList = require('./StockList');
+const Lists = require('./Lists');
 var request = require('request'); //Used by GetStockDailyFlags
 var https = require('https'); //Used by GetStockDailyFlags
+var fs = require('fs');
 
 module.exports = {
     Similarity: Similarity,
@@ -10,15 +11,18 @@ module.exports = {
     GetOtasIDFromTicker: GetOtasIDFromTicker,
     GetStockName: GetStockName,
     Pad: Pad,
+    Log: Log,
     InterRobustGetOtasID: InterRobustGetOtasID,
     InterLaunchChecks: InterLaunchChecks,
     interGenericCallBack: interGenericCallBack,
-    GetStockDailyFlags: GetStockDailyFlags,
+    StockDailyFlagsFromAPI: StockDailyFlagsFromAPI,
     GetPortfolioEntry: GetPortfolioEntry,
-    GetStockNaturalLanguage: GetStockNaturalLanguage,
+    StockNaturalLanguageFromAPI: StockNaturalLanguageFromAPI,
 }
 
-var stockList = StockList.StockDatabase;
+var stockList = Lists.StockDatabase;
+var naturalLanguageTopics = Lists.naturalLanguageTopics;
+var dailyFlagTopics = Lists.dailyFlagTopics;
 
 //----interGenericCallBack----
 function interGenericCallBack(sPrintString, globalThis, bTerminate) {
@@ -124,7 +128,8 @@ function GetPortfolioEntry(secListName, GetPortfolioEntryCallBack) {
         var info = JSON.parse(body);
         var Options = [];
         info.forEach(function (element) {
-            Options.push(Similarity(Pad('00000000000000000000000000000000000000000000000000', element.securityListName, false), Pad('11111111111111111111111111111111111111111111111111', secListName, false)));
+            //Options.push(Similarity(Pad('00000000000000000000000000000000000000000000000000', element.securityListName, false), Pad('11111111111111111111111111111111111111111111111111', secListName, false)));
+            Options.push(Similarity(element.securityListName, secListName));
         }, this);
 
         var index = Options.indexOf(Math.max(...Options))
@@ -152,8 +157,8 @@ function GetPortfolioEntry(secListName, GetPortfolioEntryCallBack) {
     }
 }
 
-//----GetStockNaturalLanguage----
-function GetStockNaturalLanguage(OtasID, topic, GetStockNaturalLanguageCallBack) {
+//----StockNaturalLanguageFromAPI----
+function StockNaturalLanguageFromAPI(OtasID, StockNaturalLanguageFromAPICallBack) {
 
     var options = {
         "rejectUnauthorized": false,
@@ -165,18 +170,14 @@ function GetStockNaturalLanguage(OtasID, topic, GetStockNaturalLanguageCallBack)
 
     function APIcallback(error, response, body) {
         var info = JSON.parse(body);
-        if (topic === null) {
-            GetStockNaturalLanguageCallBack(info.naturalLanguage)
-        } else {
-            GetStockNaturalLanguageCallBack(info.naturalLanguage['topic']);
-        }
+            StockNaturalLanguageFromAPICallBack(info.naturalLanguage)
     }
 
     request(options, APIcallback);
 }
 
-//----GetStockDailyFlags----
-function GetStockDailyFlags(OtasID, topic, scoper, GetStockDailyFlagsCallBack) {
+//----StockDailyFlagsFromAPI----
+function StockDailyFlagsFromAPI(OtasID, StockDailyFlagsFromAPICallBack) {
 
     var options = {
         "rejectUnauthorized": false,
@@ -190,16 +191,7 @@ function GetStockDailyFlags(OtasID, topic, scoper, GetStockDailyFlagsCallBack) {
 
     function APIcallback(error, response, body) {
         var info = JSON.parse(body);
-        if (topic === null) {
-            GetStockDailyFlagsCallBack(info.dailyFlags)
-        } else {
-            if (scoper == null) {
-                GetStockDailyFlagsCallBack(info.dailyFlags[topic])
-            } else {
-                var topicalFlags = info.dailyFlags[topic]
-                GetStockDailyFlagsCallBack(topicalFlags[scoper])
-            }
-        }
+            StockDailyFlagsFromAPICallBack(info.dailyFlags)
     }
 
     request(options, APIcallback);
@@ -210,7 +202,6 @@ function GetOtasID(StockString) {
     var Options = [];
     stockList.forEach(function (element) {
 
-        //Options.push(Similarity(Pad('00000000000000000000000000000000000000000000000000', element.Name, false), Pad('11111111111111111111111111111111111111111111111111', StockString, false)));
         Options.push(Similarity(element.Name, StockString));
 
     }, this);
@@ -222,7 +213,6 @@ function GetOtasID(StockString) {
 
 //----GetOtasIDFromTicker----
 function GetOtasIDFromTicker(sTicker) {
-    //N.B. If this is running slowly then you could make this easier by simply matching sTicker to stockList[index].Name rather than using Similarity
     var Options = [];
     stockList.forEach(function (element) {
 
@@ -242,12 +232,15 @@ function GetOtasIDFromTicker(sTicker) {
 function GetStockName(OtasID) {
     var Options = [];
     stockList.forEach(function (element) {
-        Options.push(Similarity(Pad('00000000000000000000000000000000000000000000000000', element.OtasID, false), Pad('11111111111111111111111111111111111111111111111111', OtasID, false)));
+        Options.push(Similarity(element.OtasID, OtasID));
     }, this);
 
-    var index = Options.indexOf(Math.max(...Options))
-
-    return stockList[index].Name
+    if (Math.max(...Options) != 1) {
+        return [null, null] //If youre not getting a perfect match on OTAS ID then its not good enough tbh
+    } else {
+        var index = Options.indexOf(Math.max(...Options));
+        return [stockList[index].Name, Math.max(...Options)]
+    }
 }
 
 //----Similarity----
@@ -302,4 +295,9 @@ function Pad(pad, str, padLeft) {
     } else {
         return (str + pad).substring(0, pad.length);
     }
+}
+
+//----Program logging----
+function Log(text){
+fs.appendFileSync('./ProgramLog.txt', text + "\r\n");
 }

@@ -57,14 +57,14 @@ var handlers = {
     'GetHighestInPortfolio': function () {
         try{
         var globalThis = this;
-        alexaFunctions.GetHighestInPortfolio(globalThis, miscFunctions.interGenericCallBack)
+        alexaFunctions.GetHighOrLowInPortfolio(globalThis, "High", miscFunctions.interGenericCallBack)
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetHighestInPortfolio. " + err.stack);}
     },
 
     'GetLowestInPortfolio': function () {
         try{
         var globalThis = this;
-        alexaFunctions.GetLowestInPortfolio(globalThis, miscFunctions.interGenericCallBack)
+        alexaFunctions.GetHighOrLowInPortfolio(globalThis, "Low", miscFunctions.interGenericCallBack)
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetLowestInPortfolio. " + err.stack);}
     },
 
