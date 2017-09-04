@@ -35,7 +35,7 @@ globalThis.event.request.intent.slots.dailyFlagParameter.value = "volotility"
 globalThis.attributes = {}
 globalThis.attributes['resumePoint'] = "A0"
 
-/*
+
 //----Tests from miscFunctions----
 miscFunctions.StockDailyFlagsFromAPI("OT.VOD.S", function(flagsInfo){
     miscFunctions
@@ -114,7 +114,7 @@ alexaFunctions.GetStockNaturalLanguage(globalThis, function (sPrintString) {
         if (sPrintString.substring(0, 10) === "Year-to-da") { console.log("GetStockNaturalLanguage test passed"); }
         else { console.log("GetStockNaturalLanguage test failed"); }
 })
-    */
+
 
 /*
 var options = {

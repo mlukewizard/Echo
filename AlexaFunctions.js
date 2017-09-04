@@ -179,63 +179,49 @@ function GetHighOrLowInPortfolio(globalThis, HighOrLow, GetHighOrLowInPortfolioC
   else { scoper = "currentLevel" }
 
   miscFunctions.GetPortfolioEntry(secListName, function (portfolioEntry) {
-    var portfolioStats = [],
-      i = 0;
-    console.log("Got here at least")
-    //Looping throught each portfolio item, each item is a stock
-    portfolioEntry.securityListItems.forEach(function (portfolioItem) {
-      miscFunctions.StockDailyFlagsFromAPI(portfolioItem.otasSecurityId, function (objDailyFlags) {
-        console.log(portfolioItem.otasSecurityId)
-        if (objDailyFlags.hasOwnProperty(OtasDailyFlagParameter)) {
-          var topic = objDailyFlags[OtasDailyFlagParameter]
-          console.log(topic)
+    var listID = portfolioEntry.securityListId
+
+
+    var options = {
+      "rejectUnauthorized": false,
+      url: 'https://api-dev.otastech.com/v1.11.1/list/portfolio/' + listID + '/dailyflags',
+      headers: {
+        'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
+        'Username': 'luke.markham@otastechnology.com',
+        'Password': 'Otastech1!'
+      }
+    };
+
+    function APIcallback(error, response, body) {
+      var info = JSON.parse(body);
+      var portfolioStats = [],
+        i = 0;
+      //Looping throught each portfolio item, each item is a stock
+      info.forEach(function (portfolioItem) {
+        if (portfolioItem.dailyFlags.hasOwnProperty(OtasDailyFlagParameter)) {
+          var topic = portfolioItem.dailyFlags[OtasDailyFlagParameter]
           try { portfolioStats.push({ stockName: portfolioItem.otasSecurityId, stat: topic[scoper] }) } catch (err) { portfolioStats.push({ stockName: portfolioItem.otasSecurityId, stat: null }) }
-        } else { console.log("doesnt have this property") }
-        console.log("current i is " + i)
-        console.log("length is " + portfolioEntry.securityListItems.length)
+        } else { portfolioStats.push({ stockName: portfolioItem.otasSecurityId, stat: null }) }
+
         if (++i === portfolioEntry.securityListItems.length) {
-
           //Calculates either the maximum value of the stat or the minimum value
-          console.log("program count is " + i)
-          if (HighOrLow == "High") { var statVal = Math.max.apply(Math, portfolioStats.map(function (element) { return element.stat })) }
-          else if (HighOrLow == "Low") { var statVal = Math.min.apply(Math, portfolioStats.map(function (element) { return element.stat })) }
-
+          if (HighOrLow == "High") { var statVal = Math.max.apply(Math, portfolioStats.map(function (element) { if (element.stat != null){return element.stat}else{return 0} })) }
+          else if (HighOrLow == "Low") { var statVal = Math.min.apply(Math, portfolioStats.map(function (element) { if (element.stat != null){return element.stat}else{return 10000000} })) }
+ 
           //Gets the stock name which has this value
           var stockName = portfolioStats.find(function (element) { return element.stat == statVal; }).stockName
-
+ 
           //Print an output dependent on the response
           if (HighOrLow == "High") { GetHighOrLowInPortfolioCallBack("The stock with the highest " + actualDailyFlagParameter + " in your portfolio named " + secListName + " is " + miscFunctions.GetStockName(stockName)[0] + " with a value of " + statVal + ".", globalThis, true) }
           else if (HighOrLow == "Low") { GetHighOrLowInPortfolioCallBack("The stock with the lowest " + actualDailyFlagParameter + " in your portfolio named " + secListName + " is " + miscFunctions.GetStockName(stockName)[0] + " with a value of " + statVal + ".", globalThis, true) }
         }
       })
-    })
+    }
+
+    request(options, APIcallback);
   })
 }
 
-/*
-//----GetLowestInPortfolio----
-function GetLowestInPortfolio(globalThis, GetLowestInPortfolioCallBack) {
-  //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
-  miscFunctions.InterLaunchChecks(globalThis, GetLowestInPortfolioCallBack, "GetLowestInPortfolio")
-
-  const secListName = globalThis.event.request.intent.slots.portfolioName.value
-
-  var userdailyFlagParameter = globalThis.event.request.intent.slots.dailyFlagParameter.value;
-
-  var Options = [];
-  dailyFlagTopics.forEach(function (element) {
-    Options.push(miscFunctions.Similarity(element.UserInvocation, userdailyFlagParameter));
-  }, this);
-  var index = Options.indexOf(Math.max(...Options))
-  var dailyFlagParameter = dailyFlagTopics[index].OtasInvocation
-
-  miscFunctions.GetPortfolioEntry(secListName, function (portfolioEntry) {
-
-
-  })
-
-}
-*/
 
 //----GetStockNaturalLanguage----
 function GetStockNaturalLanguage(globalThis, GetStockNaturalLanguageCallBack) {
