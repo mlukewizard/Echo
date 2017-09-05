@@ -8,7 +8,7 @@ module.exports = {
   GetGeneralStockInfo: GetGeneralStockInfo,
   GetMyPortfolios: GetMyPortfolios,
   GetTechnicalStockInfo: GetTechnicalStockInfo,
-  GetPortfolioMetrics: GetPortfolioMetrics,
+  SetDefaultPortfolio: SetDefaultPortfolio,
   PnL: PnL,
   GetHighOrLowInPortfolio: GetHighOrLowInPortfolio,
   GetStockNaturalLanguage: GetStockNaturalLanguage,
@@ -120,20 +120,14 @@ function GetMyPortfolios(globalThis, GetMyPortfoliosCallBack) {
   request(options, APIcallback);
 }
 
-//----GetPortfolioMetrics----
-function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
+//----SetDefaultPortfolio----
+function SetDefaultPortfolio(globalThis, SetDefaultPortfolioCallBack) {
   //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
-  miscFunctions.InterLaunchChecks(globalThis, GetPortfolioMetricsCallBack, "GetPortfolioMetrics")
+  miscFunctions.InterLaunchChecks(globalThis, SetDefaultPortfolioCallBack, "SetDefaultPortfolio")
 
   const secListName = globalThis.event.request.intent.slots.portfolioName.value
 
-  miscFunctions.GetPortfolioEntry(secListName, function (portfolioEntry) {
-    var sPrintString = "";
-    sPrintString = sPrintString + "The portfolio " + portfolioEntry.securityListName + " has a total volatility of " + (3 * Math.random()).toFixed(2).toString() + ". ";
-    sPrintString = sPrintString + portfolioEntry.securityListItems[Math.round(Math.random() * ((portfolioEntry.securityListItems).length - 1))].otasSecurityId + " has the highest marginal contribution to total risk in your portfolio at " + (Math.round(Math.random() * 10) + 5).toString() + " percent.";
-    GetPortfolioMetricsCallBack(sPrintString, globalThis, true);
-  })
-
+    SetDefaultPortfolioCallBack("Your default portfolio has been set to " + secListName, globalThis, true);
 }
 
 //----PnL----
@@ -271,7 +265,6 @@ function GetHighOrLowInPortfolio(globalThis, HighOrLow, GetHighOrLowInPortfolioC
     request(options, APIcallback);
   })
 }
-
 
 //----GetStockNaturalLanguage----
 function GetStockNaturalLanguage(globalThis, GetStockNaturalLanguageCallBack) {

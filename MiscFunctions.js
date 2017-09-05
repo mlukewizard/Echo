@@ -67,13 +67,13 @@ function InterRobustGetOtasID(globalThis, CallBackFunc, callingFuncName) {
     var runningFuncCache = globalThis.attributes.runningFunc;
 
     //Gets OTAS ID given the parameter which is currently stored in the data cache, runs on every iteration
-    var [OtasID, sPredictedName, dCertainty] = GetOtasID(runningFuncCache['userStockString']);
+    var [OtasID, sPredictedName, dCertainty, dSecondCertainty] = GetOtasID(runningFuncCache['userStockString']);
     runningFuncCache['OtasID'] = OtasID
 
     //Sees if it's the first run and if it is, checks if it's likely that you've managed to get the OtasID right
-    if (globalThis.attributes['resumePoint'] === "A0" && dCertainty < 0.6) {
+    if (globalThis.attributes['resumePoint'] === "A0" && (dCertainty < 0.6 || dSecondCertainty/dCertainty > 0.8)) {
         globalThis.attributes['resumePoint'] = "A1";
-        CallBackFunc("I'm not sure I understood that stock name correctly, did you mean " + sPredictedName + "?", globalThis, false)
+        CallBackFunc("Did you mean " + sPredictedName + "?", globalThis, false)
     }
 
     //Runs only if this is the second run through, sees if the user has accepted the correction or not
@@ -128,7 +128,6 @@ function GetPortfolioEntry(secListName, GetPortfolioEntryCallBack) {
         var info = JSON.parse(body);
         var Options = [];
         info.forEach(function (element) {
-            //Options.push(Similarity(Pad('00000000000000000000000000000000000000000000000000', element.securityListName, false), Pad('11111111111111111111111111111111111111111111111111', secListName, false)));
             Options.push(Similarity(element.securityListName, secListName));
         }, this);
 
@@ -201,14 +200,19 @@ function StockDailyFlagsFromAPI(OtasID, StockDailyFlagsFromAPICallBack) {
 function GetOtasID(StockString) {
     var Options = [];
     stockList.forEach(function (element) {
-
         Options.push(Similarity(element.Name, StockString));
-
     }, this);
 
-    var index = Options.indexOf(Math.max(...Options));
+    var highestProb = Math.max(...Options)
+    var highestIndex = Options.indexOf(highestProb);
+    var highestName = stockList[highestIndex].Name
+    var highestOtasId = stockList[highestIndex].OtasID
+    Options.splice(highestIndex, 1);
+    var secondHighestProb = Math.max(...Options);
+    var secondHighestIndex = Options.indexOf(secondHighestProb);
+    var secondHighestName = stockList[secondHighestIndex].Name
 
-    return [stockList[index].OtasID, stockList[index].Name, Math.max(...Options)]
+    return [highestOtasId, highestName, highestProb, secondHighestProb]
 }
 
 //----GetOtasIDFromTicker----

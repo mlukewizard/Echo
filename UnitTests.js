@@ -53,7 +53,7 @@ miscFunctions.GetPortfolioEntry("portfolioviaapi" ,function(flagInfo){
         console.log("GetPortfolioEntry test failed")}
 })
 
-var [OtasID, sPredictedName, dCertainty] = miscFunctions.GetOtasID("vodafone group");
+var [OtasID, sPredictedName, dCertainty, dSecondCertainty] = miscFunctions.GetOtasID("vodafone group");
 if (OtasID === "OT.VOD.S") {console.log("GetOtasID test passed");}
 else {console.log("GetOtasID test failed");}
 
@@ -86,9 +86,9 @@ alexaFunctions.GetMyPortfolios(globalThis, function (sPrintString) {
 });
 
 globalThis.attributes['resumePoint'] = "A0"
-alexaFunctions.GetPortfolioMetrics(globalThis, function (sPrintString) {
-        if (sPrintString.substring(0, 10) === "The portfo") { console.log("GetPortfolioMetrics test passed"); }
-        else { console.log("GetPortfolioMetrics test failed"); }
+alexaFunctions.SetDefaultPortfolio(globalThis, function (sPrintString) {
+        if (sPrintString.substring(0, 10) === "Your defau") { console.log("SetDefaultPortfolio test passed"); }
+        else { console.log("SetDefaultPortfolio test failed"); }
 })
 
 globalThis.attributes['resumePoint'] = "A0"
