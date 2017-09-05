@@ -138,21 +138,71 @@ function GetPortfolioMetrics(globalThis, GetPortfolioMetricsCallBack) {
 
 //----PnL----
 function PnL(globalThis, PnLCallBack) {
+
   //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
   miscFunctions.InterLaunchChecks(globalThis, PnLCallBack, "PnL")
 
+  const userlookBack = globalThis.event.request.intent.slots.lookback.value
+
+  var lookBackOptions = ["today", "this week", "this month", "year to date", "this year"]
+
+  var Options = [];
+  lookBackOptions.forEach(function (element) {
+    Options.push(miscFunctions.Similarity(element, userlookBack));
+  }, this);
+
+  var index = Options.indexOf(Math.max(...Options))
+  var lookBack = lookBackOptions[index]
+
+
+  if (lookBack == "today") { var parameterLookBack = "returnAbsolute1d" }
+  else if (lookBack == "this week") { var parameterLookBack = "returnAbsolute1w" }
+  else if (lookBack == "month to date") { var parameterLookBack = "returnAbsoluteMtd" }
+  else if (lookBack == "this month") { var parameterLookBack = "returnAbsolute1m" }
+  else if (lookBack == "year to date") { var parameterLookBack = "returnAbsoluteYtd" }
+  else if (lookBack == "this year") { var parameterLookBack = "returnAbsolute1y" }
+
   const secListName = globalThis.event.request.intent.slots.portfolioName.value
-  const lookBack = globalThis.event.request.intent.slots.lookback.value
 
-  var multiplier = 20
-  if (lookBack == "today") { multiplier = 1 }
-  else if (lookBack == "this week") { multiplier = 7 }
-  else if (lookBack == "this month") { multiplier = 30 }
-  else if (lookBack == "year to date") { multiplier = 365 }
-  else if (lookBack == "this year") { multiplier = 80 }
+  var Options = [];
 
-  PnLCallBack("Your P and L " + lookBack + " for portfolio named " + secListName + " is " + (20 * multiplier * (Math.random() - 0.3) * multiplier).toFixed(2) + " million US dollars.", globalThis, true)
-  //globalThis.emit(':tell', "Your P and L " + lookBack + " for portfolio named " + secListName + " is " + (20 * multiplier * (Math.random() - 0.3) * multiplier).toFixed(2) + " million US dollars.");
+  miscFunctions.GetPortfolioEntry(secListName, function (portfolioEntry) {
+    var listID = portfolioEntry.securityListId
+    var options = {
+      "rejectUnauthorized": false,
+      url: 'https://api-dev.otastech.com/v1.11.1/list/portfolio/' + listID + '/dailyflags',
+      headers: {
+        'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
+        'Username': 'luke.markham@otastechnology.com',
+        'Password': 'Otastech1!'
+      }
+    };
+
+    function APIcallback(error, response, body) {
+      var info = JSON.parse(body);
+      var portfolioStats = []
+      var i = 0;
+      //Looping throught each portfolio item, each item is a stock
+      info.forEach(function (portfolioItem) {
+        if (portfolioItem.dailyFlags.hasOwnProperty("performance")) {
+          var topic = portfolioItem.dailyFlags["performance"]
+          try { portfolioStats.push({ stockName: portfolioItem.otasSecurityId, stat: topic[parameterLookBack] }) } catch (err) { portfolioStats.push({ stockName: portfolioItem.otasSecurityId, stat: null }) }
+        } else { portfolioStats.push({ stockName: portfolioItem.otasSecurityId, stat: null }) }
+        //As of here you have a list of otas IDs and their returns (portfolioStats)
+      })
+
+      var PnL = 0
+      portfolioStats.forEach(function (returnItem) {
+        var stockAmount = portfolioEntry.securityListItems.find(function (element) { return element.otasSecurityId == returnItem.stockName; }).amount
+        //var priceChange = portfolioStats.find(function (element) { return element.stockName == returnItem.stockName; }).stat
+        PnL = PnL + stockAmount * returnItem.stat / 100   //*priceChange
+      })
+
+      PnLCallBack("Your P and L " + lookBack + " is $" + Math.round(PnL), globalThis, true)
+
+    }
+    request(options, APIcallback);
+  })
 }
 
 //----GetHighOrLowInPortfolio----
@@ -205,12 +255,12 @@ function GetHighOrLowInPortfolio(globalThis, HighOrLow, GetHighOrLowInPortfolioC
 
         if (++i === portfolioEntry.securityListItems.length) {
           //Calculates either the maximum value of the stat or the minimum value
-          if (HighOrLow == "High") { var statVal = Math.max.apply(Math, portfolioStats.map(function (element) { if (element.stat != null){return element.stat}else{return 0} })) }
-          else if (HighOrLow == "Low") { var statVal = Math.min.apply(Math, portfolioStats.map(function (element) { if (element.stat != null){return element.stat}else{return 10000000} })) }
- 
+          if (HighOrLow == "High") { var statVal = Math.max.apply(Math, portfolioStats.map(function (element) { if (element.stat != null) { return element.stat } else { return 0 } })) }
+          else if (HighOrLow == "Low") { var statVal = Math.min.apply(Math, portfolioStats.map(function (element) { if (element.stat != null) { return element.stat } else { return 10000000 } })) }
+
           //Gets the stock name which has this value
           var stockName = portfolioStats.find(function (element) { return element.stat == statVal; }).stockName
- 
+
           //Print an output dependent on the response
           if (HighOrLow == "High") { GetHighOrLowInPortfolioCallBack("The stock with the highest " + actualDailyFlagParameter + " in your portfolio named " + secListName + " is " + miscFunctions.GetStockName(stockName)[0] + " with a value of " + statVal + ".", globalThis, true) }
           else if (HighOrLow == "Low") { GetHighOrLowInPortfolioCallBack("The stock with the lowest " + actualDailyFlagParameter + " in your portfolio named " + secListName + " is " + miscFunctions.GetStockName(stockName)[0] + " with a value of " + statVal + ".", globalThis, true) }
