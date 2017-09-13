@@ -4,6 +4,7 @@ const Lists = require('./Lists');
 var request = require('request'); //Used by GetStockDailyFlags
 var https = require('https'); //Used by GetStockDailyFlags
 var fs = require('fs');
+var stringSimilarity = require('string-similarity');
 
 module.exports = {
     Similarity: Similarity,
@@ -21,7 +22,8 @@ module.exports = {
 }
 
 var stockList = Lists.StockDatabase;
-var naturalLanguageTopics = Lists.naturalLanguageTopics;
+var stockNaturalLanguageTopics = Lists.stockNaturalLanguageTopics;
+var portfolioNaturalLanguageTopics = Lists.portfolioNaturalLanguageTopics
 var dailyFlagTopics = Lists.dailyFlagTopics;
 
 //----interGenericCallBack----
@@ -249,6 +251,8 @@ function GetStockName(OtasID) {
 
 //----Similarity----
 function Similarity(s1, s2) {
+return stringSimilarity.compareTwoStrings(s1, s2); 
+    /*
     var longer = s1;
     var shorter = s2;
     if (s1.length < s2.length) {
@@ -260,6 +264,7 @@ function Similarity(s1, s2) {
         return 1.0;
     }
     return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+    */
 }
 
 //---editDistance(for similarity)----

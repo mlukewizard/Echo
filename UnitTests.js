@@ -23,13 +23,15 @@ globalThis.event.request = {}
 globalThis.event.request.intent = {}
 globalThis.event.request.intent.slots = {}
 globalThis.event.request.intent.slots.portfolioName = {}
-globalThis.event.request.intent.slots.portfolioName.value = "lukes personal portfolio"
+globalThis.event.request.intent.slots.portfolioName.value = "top 50 us stock"
 globalThis.event.request.intent.slots.StockString = {}
-globalThis.event.request.intent.slots.StockString.value = "vodafone group"
+globalThis.event.request.intent.slots.StockString.value = "vodafone"
 globalThis.event.request.intent.slots.lookback = {}
 globalThis.event.request.intent.slots.lookback.value = "this manth"
-globalThis.event.request.intent.slots.naturalLanguageParameter = {}
-globalThis.event.request.intent.slots.naturalLanguageParameter.value = "Yr to Date Relative Return"
+globalThis.event.request.intent.slots.stockNaturalLanguageParameter = {}
+globalThis.event.request.intent.slots.stockNaturalLanguageParameter.value = "Yr to Date Reltive Return"
+globalThis.event.request.intent.slots.portfolioNaturalLanguageParameter = {}
+globalThis.event.request.intent.slots.portfolioNaturalLanguageParameter.value = "valuation"
 globalThis.event.request.intent.slots.dailyFlagParameter = {}
 globalThis.event.request.intent.slots.dailyFlagParameter.value = "volotility"
 globalThis.attributes = {}
@@ -53,7 +55,7 @@ miscFunctions.GetPortfolioEntry("portfolioviaapi" ,function(flagInfo){
         console.log("GetPortfolioEntry test failed")}
 })
 
-var [OtasID, sPredictedName, dCertainty, dSecondCertainty] = miscFunctions.GetOtasID("vodafone group");
+var [OtasID, sPredictedName, dCertainty, dSecondCertainty] = miscFunctions.GetOtasID("vodafone");
 if (OtasID === "OT.VOD.S") {console.log("GetOtasID test passed");}
 else {console.log("GetOtasID test failed");}
 
@@ -67,6 +69,9 @@ else {console.log("GetStockName test failed");}
 
 
 //----Tests from alexaFunctions----
+//------------------------------------------------------------
+//----Stock function testing----
+//------------------------------------------------------------
 globalThis.attributes['resumePoint'] = "A0"
 alexaFunctions.GetTechnicalStockInfo(globalThis, function (sPrintString) {
         if (sPrintString.substring(0, 10) === " With resp") {console.log("GetTechnicalStockInfo test passed");}
@@ -79,6 +84,16 @@ alexaFunctions.GetGeneralStockInfo(globalThis, function (sPrintString) {
         else { console.log("GetGeneralStockInfo test failed"); }
 });
 
+
+
+globalThis.attributes['resumePoint'] = "A0"
+alexaFunctions.GetStockNaturalLanguage(globalThis, function (sPrintString) {
+        if (sPrintString.substring(0, 10) === "Year-to-da") { console.log("GetStockNaturalLanguage test passed"); }
+        else { console.log("GetStockNaturalLanguage test failed"); }
+})
+//------------------------------------------------------------
+//----Portfolio function testing
+//------------------------------------------------------------
 globalThis.attributes['resumePoint'] = "A0"
 alexaFunctions.GetMyPortfolios(globalThis, function (sPrintString) {
         if (sPrintString.substring(0, 10) === "The portfo") {console.log("GetMyPortfolios test passed");}
@@ -110,11 +125,16 @@ alexaFunctions.GetHighOrLowInPortfolio(globalThis, "Low", function (sPrintString
 })
 
 globalThis.attributes['resumePoint'] = "A0"
-alexaFunctions.GetStockNaturalLanguage(globalThis, function (sPrintString) {
-        if (sPrintString.substring(0, 10) === "Year-to-da") { console.log("GetStockNaturalLanguage test passed"); }
-        else { console.log("GetStockNaturalLanguage test failed"); }
+alexaFunctions.GetListAlerts(globalThis, function (sPrintString) {
+        if (sPrintString.substring(0, 10) === "Alerts for") { console.log("GetListAlerts test passed"); }
+        else { console.log("GetListAlerts test failed"); }
 })
 
+globalThis.attributes['resumePoint'] = "A0"
+alexaFunctions.GetPortfolioNaturalLanguage(globalThis, function (sPrintString) {
+        if (sPrintString.substring(0, 10) === "For the po") { console.log("GetPortfolioNaturalLanguage test passed"); }
+        else { console.log("GetPortfolioNaturalLanguage test failed"); }
+})
 
 /*
 var options = {
@@ -129,12 +149,14 @@ function APIcallback(error, response, body) {
     var info = JSON.parse(body);
     string = ""
     info.forEach(function (element) {
+            if ((element.country == "UNITED KINGDOM"|| element.country == "UNITED STATES")&&(element.exchange == "NAS"||element.exchange == "LON"||element.exchange == "NYS")){
         processedName = element.name.replace(/[()'"]/g, '');
         processedName = processedName.replace(/&/g, ' and ');
         processedName = processedName.replace(/\+/g, ' and ');
         processedName = processedName.replace(/-/g, ' ');
         processedName = processedName.replace(/\s\s/g, ' ');
         string = string + "{ Name: \"" + processedName + "\", BBTicker: \"" + element.ticker + "\", OtasID: \"" + element.otasSecurityId + "\"}," + "\r\n"
+            }
     })
     miscFunctions.Log(string)
     console.log("here")

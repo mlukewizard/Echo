@@ -1,0 +1,22 @@
+userYes yes
+userNo no
+SpecifyTicker yes its {ticker}
+SpecifyTicker {ticker}
+PnL my P and L {lookback} for my portfolio named {portfolioName}
+PnL my P and L {lookback}
+GetMyPortfolios portfolios I've saved
+GetGeneralStockInfo tell me about {StockString}
+GetGeneralStockInfo about {StockString}
+GetTechnicalStockInfo technical update on {StockString}
+SetDefaultPortfolio set my default portfolio to be {portfolioName}
+GetListAlerts alerts in my portfolio
+GetListAlerts alerts in my portfolio named {portfolioName}
+GetHighestInPortfolio have the highest {dailyFlagParameter} in my portfolio named {portfolioName}
+GetHighestInPortfolio have the highest {dailyFlagParameter} in my portfolio
+GetHighestInPortfolio of my holdings have the highest {dailyFlagParameter}
+GetLowestInPortfolio have the lowest {dailyFlagParameter} in my portfolio named {portfolioName}
+GetLowestInPortfolio have the lowest {dailyFlagParameter} in my portfolio
+GetLowestInPortfolio of my holdings have the lowest {dailyFlagParameter}
+GetStockNaturalLanguage about {stockNaturalLanguageParameter} in {StockString}
+GetPortfolioNaturalLanguage about {portfolioNaturalLanguageParameter} in {portfolioName}
+GetPortfolioNaturalLanguage about {portfolioNaturalLanguageParameter} in my portfolio

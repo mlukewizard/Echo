@@ -1,0 +1,123 @@
+{
+  "intents": [
+    {
+      "intent": "userYes"
+    },
+    {
+      "intent": "userNo"
+    },
+    {
+      "slots": [
+        {
+          "name": "ticker",
+          "type": "FTSE_three_fifty_TICKERS"
+        }
+      ],
+      "intent": "SpecifyTicker"
+    },
+    {
+      "slots": [
+        {
+          "name": "portfolioName",
+          "type": "portfolioList"
+        },
+        {
+          "name": "lookback",
+          "type": "lookbackPeriod"
+        }
+      ],
+      "intent": "PnL"
+    },
+    {
+      "intent": "GetMyPortfolios"
+    },
+    {
+      "slots": [
+        {
+          "name": "StockString",
+          "type": "FTSE_three_fifty"
+        }
+      ],
+      "intent": "GetGeneralStockInfo"
+    },
+    {
+      "slots": [
+        {
+          "name": "StockString",
+          "type": "FTSE_three_fifty"
+        }
+      ],
+      "intent": "GetTechnicalStockInfo"
+    },
+    {
+      "slots": [
+        {
+          "name": "portfolioName",
+          "type": "portfolioList"
+        }
+      ],
+      "intent": "SetDefaultPortfolio"
+    },
+    {
+      "slots": [
+        {
+          "name": "portfolioName",
+          "type": "portfolioList"
+        }
+      ],
+      "intent": "GetListAlerts"
+    },
+    {
+      "slots": [
+        {
+          "name": "portfolioName",
+          "type": "portfolioList"
+        },
+        {
+          "name": "dailyFlagParameter",
+          "type": "dailyFlagTopics"
+        }
+      ],
+      "intent": "GetHighestInPortfolio"
+    },
+    {
+      "slots": [
+        {
+          "name": "portfolioName",
+          "type": "portfolioList"
+        },
+        {
+          "name": "dailyFlagParameter",
+          "type": "dailyFlagTopics"
+        }
+      ],
+      "intent": "GetLowestInPortfolio"
+    },
+    {
+      "slots": [
+        {
+          "name": "StockString",
+          "type": "FTSE_three_fifty"
+        },
+        {
+          "name": "stockNaturalLanguageParameter",
+          "type": "stockNaturalLanguageTopics"
+        }
+      ],
+      "intent": "GetStockNaturalLanguage"
+    },
+    {
+      "slots": [
+        {
+          "name": "portfolioName",
+          "type": "portfolioList"
+        },
+        {
+          "name": "portfolioNaturalLanguageParameter",
+          "type": "portfolioNaturalLanguageTopics"
+        }
+      ],
+      "intent": "GetPortfolioNaturalLanguage"
+    }
+  ]
+}

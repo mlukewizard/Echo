@@ -19,6 +19,10 @@ var handlers = {
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in LaunchIntent. " + err.stack);}
     },
 
+    //-------------------------------------------------
+    //Stock focussed functions
+    //-------------------------------------------------
+
     'GetGeneralStockInfo': function () {
         try{
         var globalThis = this;
@@ -26,6 +30,23 @@ var handlers = {
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetGeneralStockInfo. " + err.stack);}
     },
 
+    'GetStockNaturalLanguage': function () {
+        try{
+        var globalThis = this;
+        alexaFunctions.GetStockNaturalLanguage(globalThis, miscFunctions.interGenericCallBack)
+        }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetStockNaturalLanguage. " + err.stack);}
+    },
+
+    'GetTechnicalStockInfo': function () {
+        try{
+        var globalThis = this;
+        alexaFunctions.GetTechnicalStockInfo(globalThis, miscFunctions.interGenericCallBack)
+        }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetTechnicalStockInfo. " + err.stack);}
+    },
+
+    //-------------------------------------------------
+    //Portfolio focussed functions
+    //-------------------------------------------------
     'GetMyPortfolios': function () {
         try{
         var globalThis = this;
@@ -40,18 +61,18 @@ var handlers = {
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in PnL. " + err.stack);}
     },
 
-    'GetTechnicalStockInfo': function () {
-        try{
-        var globalThis = this;
-        alexaFunctions.GetTechnicalStockInfo(globalThis, miscFunctions.interGenericCallBack)
-        }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetTechnicalStockInfo. " + err.stack);}
-    },
-
     'GetPortfolioMetrics': function () {
         try{
         var globalThis = this;
         alexaFunctions.GetPortfolioMetrics(globalThis, miscFunctions.interGenericCallBack)
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetPortfolioMetrics. " + err.stack);}
+    },
+
+    'SetDefaultPortfolio': function () {
+        try{
+        var globalThis = this;
+        alexaFunctions.SetDefaultPortfolio(globalThis, miscFunctions.interGenericCallBack)
+        }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in SetDefaultPortfolio. " + err.stack);}
     },
 
     'GetHighestInPortfolio': function () {
@@ -68,11 +89,18 @@ var handlers = {
         }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetLowestInPortfolio. " + err.stack);}
     },
 
-    'GetStockNaturalLanguage': function () {
+    'GetPortfolioNaturalLanguage': function () {
         try{
         var globalThis = this;
-        alexaFunctions.GetStockNaturalLanguage(globalThis, miscFunctions.interGenericCallBack)
-        }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetStockNaturalLanguage. " + err.stack);}
+        alexaFunctions.GetPortfolioNaturalLanguage(globalThis, miscFunctions.interGenericCallBack)
+        }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetPortfolioNaturalLanguage. " + err.stack);}
+    },
+
+    'GetListAlerts': function () {
+        var globalThis = this;
+        try{
+        alexaFunctions.GetListAlerts(globalThis, miscFunctions.interGenericCallBack)
+        }catch(err){globalThis.emit(':tell', "Sorry, there has been an error in GetListAlerts. " + err.stack);}
     },
     
     //----Only helper functions from here onwards----

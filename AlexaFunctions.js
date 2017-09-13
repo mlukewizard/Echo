@@ -12,12 +12,18 @@ module.exports = {
   PnL: PnL,
   GetHighOrLowInPortfolio: GetHighOrLowInPortfolio,
   GetStockNaturalLanguage: GetStockNaturalLanguage,
+  GetListAlerts: GetListAlerts,
+  GetPortfolioNaturalLanguage: GetPortfolioNaturalLanguage,
 }
 
 var stockList = Lists.StockDatabase;
-var naturalLanguageTopics = Lists.naturalLanguageTopics;
+var stockNaturalLanguageTopics = Lists.stockNaturalLanguageTopics;
+var portfolioNaturalLanguageTopics = Lists.portfolioNaturalLanguageTopics;
 var dailyFlagTopics = Lists.dailyFlagTopics;
 
+//------------------------------------------------------------------------------
+//----Stock focussed functions
+//------------------------------------------------------------------------------
 //----GetGeneralStockInfo----
 function GetGeneralStockInfo(globalThis, GetGeneralStockInfoCallBack) {
   //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
@@ -92,6 +98,33 @@ function GetTechnicalStockInfo(globalThis, GetTechnicalStockInfoCallBack) {
   })
 }
 
+//----GetStockNaturalLanguage----
+function GetStockNaturalLanguage(globalThis, GetStockNaturalLanguageCallBack) {
+  //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
+  miscFunctions.InterLaunchChecks(globalThis, GetStockNaturalLanguageCallBack, "GetStockNaturalLanguage")
+
+  //Abstracts the identification of the OTAS ID conversation
+  var OtasID = miscFunctions.InterRobustGetOtasID(globalThis, GetStockNaturalLanguageCallBack, "GetStockNaturalLanguage")
+
+  var userStockNaturalLanguageParameter = globalThis.event.request.intent.slots.stockNaturalLanguageParameter.value
+
+  var Options = [];
+  stockNaturalLanguageTopics.forEach(function (element) {
+    Options.push(miscFunctions.Similarity(element.UserInvocation, userStockNaturalLanguageParameter));
+  }, this);
+  var index = Options.indexOf(Math.max(...Options))
+  var stockNaturalLanguageParameter = stockNaturalLanguageTopics[index].OtasInvocation
+
+  miscFunctions.StockNaturalLanguageFromAPI(OtasID, function (ApiReturnNaturalLanguage) {
+    GetStockNaturalLanguageCallBack(ApiReturnNaturalLanguage[stockNaturalLanguageParameter].text, globalThis, true)
+  })
+
+
+}
+
+//------------------------------------------------------------------------------
+//----Portfolio focussed functions
+//------------------------------------------------------------------------------
 //----GetMyPortfolios----
 function GetMyPortfolios(globalThis, GetMyPortfoliosCallBack) {
   //globalThis.emit(':tell', "sPrintString");
@@ -127,12 +160,11 @@ function SetDefaultPortfolio(globalThis, SetDefaultPortfolioCallBack) {
 
   const secListName = globalThis.event.request.intent.slots.portfolioName.value
 
-    SetDefaultPortfolioCallBack("Your default portfolio has been set to " + secListName, globalThis, true);
+  SetDefaultPortfolioCallBack("Your default portfolio has been set to " + secListName, globalThis, true);
 }
 
 //----PnL----
 function PnL(globalThis, PnLCallBack) {
-
   //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
   miscFunctions.InterLaunchChecks(globalThis, PnLCallBack, "PnL")
 
@@ -148,7 +180,6 @@ function PnL(globalThis, PnLCallBack) {
   var index = Options.indexOf(Math.max(...Options))
   var lookBack = lookBackOptions[index]
 
-
   if (lookBack == "today") { var parameterLookBack = "returnAbsolute1d" }
   else if (lookBack == "this week") { var parameterLookBack = "returnAbsolute1w" }
   else if (lookBack == "month to date") { var parameterLookBack = "returnAbsoluteMtd" }
@@ -156,7 +187,12 @@ function PnL(globalThis, PnLCallBack) {
   else if (lookBack == "year to date") { var parameterLookBack = "returnAbsoluteYtd" }
   else if (lookBack == "this year") { var parameterLookBack = "returnAbsolute1y" }
 
-  const secListName = globalThis.event.request.intent.slots.portfolioName.value
+  var secListName = ""
+  if (globalThis.event.request.intent.slots.portfolioName.hasOwnProperty('value')) {
+    secListName = globalThis.event.request.intent.slots.portfolioName.value
+  } else {
+    secListName = "US top 50 stocks"
+  }
 
   var Options = [];
 
@@ -204,10 +240,14 @@ function GetHighOrLowInPortfolio(globalThis, HighOrLow, GetHighOrLowInPortfolioC
   //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
   miscFunctions.InterLaunchChecks(globalThis, GetHighOrLowInPortfolioCallBack, "GetHighOrLowInPortfolio")
 
-  const secListName = globalThis.event.request.intent.slots.portfolioName.value
+  var secListName = ""
+  if (globalThis.event.request.intent.slots.portfolioName.hasOwnProperty('value')) {
+    secListName = globalThis.event.request.intent.slots.portfolioName.value
+  } else {
+    secListName = "US top 50 stocks"
+  }
 
   var userDailyFlagParameter = globalThis.event.request.intent.slots.dailyFlagParameter.value;
-
   var Options = [];
   dailyFlagTopics.forEach(function (element) {
     Options.push(miscFunctions.Similarity(element.UserInvocation, userDailyFlagParameter));
@@ -266,28 +306,133 @@ function GetHighOrLowInPortfolio(globalThis, HighOrLow, GetHighOrLowInPortfolioC
   })
 }
 
-//----GetStockNaturalLanguage----
-function GetStockNaturalLanguage(globalThis, GetStockNaturalLanguageCallBack) {
+//----GetListAlerts----
+function GetListAlerts(globalThis, GetListAlertsCallBack) {
   //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
-  miscFunctions.InterLaunchChecks(globalThis, GetStockNaturalLanguageCallBack, "GetStockNaturalLanguage")
+  miscFunctions.InterLaunchChecks(globalThis, GetListAlertsCallBack, "GetListAlerts")
 
-  //Abstracts the identification of the OTAS ID conversation
-  var OtasID = miscFunctions.InterRobustGetOtasID(globalThis, GetStockNaturalLanguageCallBack, "GetStockNaturalLanguage")
-
-  var userNaturalLanguageParameter = globalThis.event.request.intent.slots.naturalLanguageParameter.value
+  var secListName = ""
+  if (globalThis.event.request.intent.slots.portfolioName.hasOwnProperty('value')) {
+    secListName = globalThis.event.request.intent.slots.portfolioName.value
+  } else {
+    secListName = "US top 50 stocks"
+  }
 
   var Options = [];
-  naturalLanguageTopics.forEach(function (element) {
-    Options.push(miscFunctions.Similarity(element.UserInvocation, userNaturalLanguageParameter));
+
+  miscFunctions.GetPortfolioEntry(secListName, function (portfolioEntry) {
+
+    var listID = portfolioEntry.securityListId
+    var options = {
+      "rejectUnauthorized": false,
+      url: 'https://api-dev.otastech.com/v1.11.1/list/portfolio/' + listID + '/alerts',
+      headers: {
+        'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
+        'Username': 'luke.markham@otastechnology.com',
+        'Password': 'Otastech1!'
+      }
+    };
+
+    function APIcallback(error, response, body) {
+      var info = JSON.parse(body);
+      var itemsAndAlerts = {}
+      //Looping throught each alert
+      var enoughAlerts = false
+      var i = 0;
+      var arr = [
+        ["extremehigh", "extremeLow"],
+        ["veryHigh", "veryLow"],
+        ["high", "low", "priority"],
+        ["normal", "nonPriority"]
+      ]
+
+      while (enoughAlerts == false) {
+        info.forEach(function (alertItem) {
+          if (arr[i].indexOf(alertItem.alertStatus) > -1) {
+            if (alertItem.alertText.match(/[a-z]/i)) {
+              if (!itemsAndAlerts.hasOwnProperty(alertItem.name)) { itemsAndAlerts[alertItem.name] = {} }
+              var flagObj = itemsAndAlerts[alertItem.name]
+              flagObj[alertItem.alertType] = alertItem.alertText
+            }
+          }
+        })
+        if (Object.keys(itemsAndAlerts).length > 2 || i > 2) { enoughAlerts = true }
+        i++
+      }
+
+      var sPrintString = "Alerts for the portfolio " + portfolioEntry.securityListName + ". "
+      for (var j = 0; j < Object.keys(itemsAndAlerts).length; j++) {
+        var stockAlerts = itemsAndAlerts[Object.keys(itemsAndAlerts)[j]]
+        if (j > 0) { sPrintString = sPrintString + ". " }
+        sPrintString = sPrintString + "In " + Object.keys(itemsAndAlerts)[j] + " "
+        for (var k = 0; k < Object.keys(stockAlerts).length; k++) {
+          var alertItem = stockAlerts[Object.keys(stockAlerts)[k]]
+          if (k > 0) { sPrintString = sPrintString + " and " }
+          sPrintString = sPrintString + alertItem
+          i++
+        }
+      }
+      if (Object.keys(itemsAndAlerts).length == 0) { sPrintString = "There are no alerts." }
+
+      GetListAlertsCallBack(sPrintString, globalThis, true)
+
+    }
+
+    request(options, APIcallback);
+  })
+}
+
+//----GetPortfolioNaturalLanguage----
+function GetPortfolioNaturalLanguage(globalThis, GetPortfolioNaturalLanguageCallBack) {
+  //Checks if its the first time the function has been called, sets the current function to this function and initiates the storage object and gives a warning if another function was running
+  miscFunctions.InterLaunchChecks(globalThis, GetPortfolioNaturalLanguageCallBack, "GetPortfolioNaturalLanguage")
+
+  var userPortfolioNaturalLanguageParameter = globalThis.event.request.intent.slots.portfolioNaturalLanguageParameter.value
+
+  var Options = [];
+  portfolioNaturalLanguageTopics.forEach(function (element) {
+    Options.push(miscFunctions.Similarity(element.UserInvocation, userPortfolioNaturalLanguageParameter));
   }, this);
   var index = Options.indexOf(Math.max(...Options))
-  var naturalLanguageParameter = naturalLanguageTopics[index].OtasInvocation
+  var portfolioNaturalLanguageParameter = portfolioNaturalLanguageTopics[index].OtasInvocation
 
-  miscFunctions.StockNaturalLanguageFromAPI(OtasID, function (ApiReturnNaturalLanguage) {
-    GetStockNaturalLanguageCallBack(ApiReturnNaturalLanguage[naturalLanguageParameter].text, globalThis, true)
+  var secListName = ""
+  if (globalThis.event.request.intent.slots.portfolioName.hasOwnProperty('value')) {
+    secListName = globalThis.event.request.intent.slots.portfolioName.value
+  } else {
+    secListName = "US top 50 stocks"
+  }
+
+  miscFunctions.GetPortfolioEntry(secListName, function (portfolioEntry) {
+    var listID = portfolioEntry.securityListId
+    var options = {
+      "rejectUnauthorized": false,
+      url: 'https://api-dev.otastech.com/v1.11.1/list/portfolio/' + listID + '/lingo/1d',
+      headers: {
+        'Authorization': 'ADE2C684A57BA4AB25542F57B5E5B',
+        'Username': 'luke.markham@otastechnology.com',
+        'Password': 'Otastech1!'
+      }
+    };
+
+    function APIcallback(error, response, body) {
+      var info = JSON.parse(body);
+      if (Object.keys(info.naturalLanguage[portfolioNaturalLanguageParameter]).length == 0) {
+        GetPortfolioNaturalLanguageCallBack("There are no alerts", globalThis, true)
+      } else {
+        GetPortfolioNaturalLanguageCallBack("For the portfolio " + portfolioEntry.securityListName + ", " + info.naturalLanguage[portfolioNaturalLanguageParameter].text, globalThis, true)
+      }
+    }
+
+    request(options, APIcallback);
   })
 
 
 }
+//------------------------------------------------------------------------------
+//----Liquidnet focussed functions
+//------------------------------------------------------------------------------
+
+
 
 
